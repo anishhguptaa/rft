@@ -11,22 +11,21 @@ class Settings(BaseSettings):
     """Application settings"""
 
     # App Info
-    PROJECT_NAME: str = Field(default="RFT App", description="Project name")
-    DEBUG: bool = Field(default=True, description="Debug mode")
-
+    PROJECT_NAME: str = Field(description="Project name")
+    DEBUG: bool = Field(description="Debug mode")
+    
     # Server
-    HOST: str = Field(default="0.0.0.0", description="Server host")
-    PORT: int = Field(default=8000, description="Server port")
+    HOST: str = Field(description="Server host")
+    PORT: int = Field(description="Server port")
 
     # Third Party API Keys
     GEMINI_API_KEY: str = Field(description="Gemini API key")
 
     # CORS
-    ALLOWED_ORIGINS: List[str] = Field(
-        default=["http://localhost:3000", "http://localhost:8000"],
-        description="Allowed origins for CORS",
-    )
+    ALLOWED_ORIGINS: List[str] = Field(description="Allowed origins for CORS")
 
+    DATABASE_URL: str = Field(description="Database URL")
+    
     class Config:
         env_file = ".env"
         case_sensitive = True
