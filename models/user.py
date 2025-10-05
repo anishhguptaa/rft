@@ -2,8 +2,8 @@
 from sqlalchemy import (
     Column,
     Integer,
+    Nullable,
     String,
-    Date,
     DECIMAL,
     DateTime,
     func
@@ -25,7 +25,7 @@ class User(Base):
     Email = Column(String(150), unique=True, index=True, nullable=False)
     PasswordHash = Column(String(255), nullable=False)
     Gender = Column(String(10))
-    DOB = Column(Date)
+    Age = Column(Integer, nullable=False)
     HeightCm = Column(DECIMAL(5, 2))
     WeightKg = Column(DECIMAL(5, 2))
     CreatedAt = Column(DateTime, server_default=func.now())
