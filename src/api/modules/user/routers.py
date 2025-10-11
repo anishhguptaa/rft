@@ -1,13 +1,13 @@
 """
-Backend Routes
-Handles all backend/business logic endpoints for the main application.
+User Routes
+Handles user management endpoints
 """
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from core.db import get_db
-from backend.services import get_user_by_id
+from api.modules.user.services import get_user_by_id
 from schemas.backend_schemas import UserResponse
 
 router = APIRouter()
@@ -18,7 +18,12 @@ def read_user(user_id: int, db: Session = Depends(get_db)):
     """
     Retrieve a single user by their ID.
 
-    - **user_id**: The integer ID of the user to retrieve.
+    Args:
+        user_id: The integer ID of the user to retrieve.
+        db: Database session dependency
+        
+    Returns:
+        UserResponse with user details
     """
     db_user = get_user_by_id(db, user_id=user_id)
     if db_user is None:

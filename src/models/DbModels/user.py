@@ -28,6 +28,7 @@ class User(Base):
     Age = Column(Integer, nullable=False)
     HeightCm = Column(DECIMAL(5, 2))
     WeightKg = Column(DECIMAL(5, 2))
+    UserEquipment = Column(String(255))
     CreatedAt = Column(DateTime, server_default=func.now())
     UpdatedAt = Column(DateTime, server_default=func.now(), onupdate=func.now())
 

@@ -3,22 +3,29 @@ FastAPI Main Application
 This is the entry point for the FastAPI application with AI and Backend endpoints.
 """
 
+import sys
+from pathlib import Path
+
+# Add src directory to Python path so internal imports work
+sys.path.insert(0, str(Path(__file__).parent / "src"))
+
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
 from core.config import settings
 from core.db import engine, get_db
-from models.user import Base
-from models.goal import Goal  # Import the new Goal model
-from models.workout_plan import WorkoutPlan # Import the new WorkoutPlan model
-from models.daily_workout import DailyWorkout # Import the new DailyWorkout model
-from models.exercise import Exercise # Import the new Exercise model
-from models.workout_log import WorkoutLog # Import the new WorkoutLog model
-from models.meal_log import MealLog # Import the new MealLog model
-from models.user_progress import UserProgress # Import the new UserProgress model
+from models.DbModels.user import Base
+from models.DbModels.goal import Goal  # Import the new Goal model
+from models.DbModels.workout_plan import WorkoutPlan # Import the new WorkoutPlan model
+from models.DbModels.daily_workout import DailyWorkout # Import the new DailyWorkout model
+from models.DbModels.exercise import Exercise # Import the new Exercise model
+from models.DbModels.workout_log import WorkoutLog # Import the new WorkoutLog model
+from models.DbModels.meal_log import MealLog # Import the new MealLog model
+from models.DbModels.user_progress import UserProgress # Import the new UserProgress model
 from ai.routes import router as ai_router
-from backend.routes import router as backend_router
+from api.modules.auth.routers import router as auth_router
+from api.modules.user.routers import router as user_router
 
 # Create all tables stored in the Base metadata
 # This will create the 'users' table if it doesn't exist
@@ -42,7 +49,8 @@ app.add_middleware(
 
 # Include routers
 app.include_router(ai_router, prefix="/api/ai", tags=["AI"])
-app.include_router(backend_router, prefix="/api/backend", tags=["Backend"])
+app.include_router(auth_router, prefix="/api/auth", tags=["Authentication"])
+app.include_router(user_router, prefix="/api/users", tags=["Users"])
 
 
 # DB health endpoint (verifies app->DB connectivity)
