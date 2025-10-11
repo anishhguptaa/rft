@@ -42,6 +42,11 @@ class CreateCompleteWorkoutRequest(BaseModel):
 
 
 # Response Schemas
+class RequestFeasibilityResponse(BaseModel):
+    feasibility: str = Field(..., description="Feasibility of the request: FEASIBLE, NOT_FEASIBLE")
+    feasibility_reasoning: str = Field(..., description="Reasoning behind the feasibility")
+    feasibility_recommendations: str = Field(..., description="Recommendations for the request")
+
 class Reps(BaseModel):
     weight_used: float = Field(..., description="Weight used for the exercise in kilograms", ge=0, le=1000)
     number_of_reps: str = Field(

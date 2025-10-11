@@ -3,14 +3,14 @@ Gemini AI Service
 Handles workout plan generation using Google's Gemini AI
 """
 
-from .prompts import get_workout_prompt
+from .prompts import get_workout_prompt, get_feasibility_prompt
 from ..core.config import settings
 from ..core.logger import get_logger
 from typing import Dict, Any
 from google import genai
 from google.genai import types
 from pydantic import BaseModel
-from ..schemas.ai_schemas import WorkoutPlanResponse, CreateCompleteWorkoutRequest
+from ..schemas.ai_schemas import WorkoutPlanResponse, CreateCompleteWorkoutRequest, RequestFeasibilityResponse
 
 logger = get_logger(__name__)
 
@@ -104,15 +104,29 @@ class GeminiService:
             Dictionary containing the generated workout plan
         """
         try:
-            prompt = get_workout_prompt(request_data)
-            workout_plan = self.ask_gemini(
-                prompt=prompt,
+            logger.info(f"Checking feasibility of the Workout Plan Request!")
+            feasibility_prompt = get_feasibility_prompt(request_data)
+            feasibility = self.ask_gemini(
+                prompt=feasibility_prompt,
                 model=model,
-                output_schema=WorkoutPlanResponse,
+                output_schema=RequestFeasibilityResponse,
                 thinking_budget=True,  # Enable reasoning for complex planning
                 temperature=temperature,
             )
-            return workout_plan
+            if feasibility.get("feasibility") == "NOT_FEASIBLE":
+                logger.info(f"Workout Plan Request is not feasible")
+                return feasibility
+            else:
+                logger.info(f"Workout Plan Request is feasible ... generating workout plan!!")
+                workout_plan_prompt = get_workout_prompt(request_data)
+                workout_plan = self.ask_gemini(
+                    prompt=workout_plan_prompt,
+                    model=model,
+                    output_schema=WorkoutPlanResponse,
+                    thinking_budget=True,  # Enable reasoning for complex planning
+                    temperature=temperature,
+                )
+                return workout_plan
 
         except Exception as e:
             logger.error(f"Failed to generate workout plan: {str(e)}", exc_info=True)
