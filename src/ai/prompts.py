@@ -1,38 +1,62 @@
 from typing import Dict, Any
+from .prompts_text import WORKOUT_PROMPT_TEMPLATE, REQUEST_FEASIBILITY_PROMPT_TEMPLATE
 
 
 def get_workout_prompt(data: Dict[str, Any]) -> str:
-    """Create a detailed prompt for workout plan generation"""
-    prompt = f"""
-        You are a professional fitness trainer and nutritionist. Create a comprehensive, personalized workout plan based on the following user information:
+    """Create an optimized prompt for workout plan generation using advanced prompt engineering techniques"""
+    
+    # Format limitations as a readable list
+    limitations_text = ", ".join(data['user_limitations']) if data['user_limitations'] else "None specified"
+    
+    # Calculate remaining days in the week
+    current_day = data['current_day'].lower()
+    days_of_week = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+    current_day_index = days_of_week.index(current_day) if current_day in days_of_week else 0
+    remaining_days = 7 - current_day_index
+    
+    template_vars = {
+        'height': data['height'],
+        'weight': data['weight'],
+        'target_weight': data['target_weight'],
+        'age': data['age'],
+        'gender': data['gender'],
+        'workout_goal': data['workout_goal'],
+        'goal_timeline': data['goal_timeline'],
+        'workout_days': data['workout_days'],
+        'experience_level': data['experience_level'],
+        'equipment': data['equipment'],
+        'current_day': data['current_day'],
+        'remaining_days': remaining_days,
+        'limitations_text': limitations_text,
+        'user_remarks': data.get('user_remarks', 'None provided'),
+        'current_day_index_plus_one': current_day_index + 1
+    }
+    
+    prompt = WORKOUT_PROMPT_TEMPLATE.format(**template_vars)
+    
+    return prompt
 
-        User Profile:
-        - Height: {data['height']} cm
-        - Weight: {data['weight']} kg
-        - Age: {data['age']} years
-        - Gender: {data['gender']}
-        - Workout Days: {data['workout_days']}
-        - Workout Goal: {data['workout_goal']}
-        - Goal Timeline: {data['goal_timeline']} weeks
-        - Available Equipment: {data['equipment']}
-        - Experience Level: {data['experience_level']}
 
-        Please generate a detailed workout plan that includes:
-
-        1. **Overview**: Brief summary of the plan and expected outcomes
-        2. **Weekly Schedule**: Day-by-day breakdown of workouts
-        3. **Exercise Details**: For each exercise, include:
-           - Exercise name
-           - Sets and reps
-           - Rest periods
-           - Difficulty level
-           - Equipment needed
-           - Proper form tips
-        4. **Progression Plan**: How to increase intensity over the {data['goal_timeline']} weeks
-        5. **Nutrition Guidelines**: Basic dietary recommendations
-        6. **Recovery Tips**: Rest and recovery strategies
-        7. **Safety Considerations**: Important safety notes
-
-        Each exercise should have: name, sets, reps, rest_period, difficulty, equipment, form_tips
-        """
+def get_feasibility_prompt(data: Dict[str, Any]) -> str:
+    """Create a prompt for feasibility assessment using the same input as workout generation"""
+    
+    limitations_text = ", ".join(data['user_limitations']) if data['user_limitations'] else "None specified"
+    
+    template_vars = {
+        'height': data['height'],
+        'weight': data['weight'],
+        'target_weight': data['target_weight'],
+        'age': data['age'],
+        'gender': data['gender'],
+        'workout_goal': data['workout_goal'],
+        'goal_timeline': data['goal_timeline'],
+        'workout_days': data['workout_days'],
+        'experience_level': data['experience_level'],
+        'equipment': data['equipment'],
+        'limitations_text': limitations_text,
+        'user_remarks': data.get('user_remarks', 'None provided')
+    }
+    
+    prompt = REQUEST_FEASIBILITY_PROMPT_TEMPLATE.format(**template_vars)
+    
     return prompt
