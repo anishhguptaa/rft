@@ -23,6 +23,7 @@ from models.DbModels.exercise import Exercise # Import the new Exercise model
 from models.DbModels.workout_log import WorkoutLog # Import the new WorkoutLog model
 from models.DbModels.meal_log import MealLog # Import the new MealLog model
 from models.DbModels.user_progress import UserProgress # Import the new UserProgress model
+from models.DbModels.user_health_profile import UserHealthProfile # Import the new UserHealthProfile model
 from ai.routes import router as ai_router
 from api.modules.auth.routers import router as auth_router
 from api.modules.user.routers import router as user_router
