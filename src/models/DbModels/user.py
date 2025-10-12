@@ -9,6 +9,8 @@ from sqlalchemy import (
     func
 )
 from sqlalchemy.orm import declarative_base
+from models.Enums.enums import UserExperienceLevel
+from sqlalchemy import Enum
 
 # The DeclarativeBase is a factory for creating base classes for your models.
 # All your models will inherit from this.
@@ -28,7 +30,7 @@ class User(Base):
     Age = Column(Integer, nullable=False)
     HeightCm = Column(DECIMAL(5, 2))
     WeightKg = Column(DECIMAL(5, 2))
-    UserEquipment = Column(String(255))
+    UserExperienceLevel = Column(Enum(UserExperienceLevel), nullable=False)
     CreatedAt = Column(DateTime, server_default=func.now())
     UpdatedAt = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
