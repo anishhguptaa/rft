@@ -161,7 +161,7 @@ def start_workout_session(
         return None
     
     # Check if status is pending
-    if schedule.Status != ScheduleStatus.PENDING:
+    if schedule.Status == ScheduleStatus.COMPLETED:
         raise ValueError(f"Cannot start session. Current status is '{schedule.Status.value}', expected 'pending'")
     
     # Update status to started
