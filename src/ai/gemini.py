@@ -6,6 +6,9 @@ Handles workout plan generation using Google's Gemini AI
 from ai.prompts import get_first_workout_prompt, get_feasibility_prompt, get_adjust_workout_plan_prompt
 from core.config import settings
 from core.logger import get_logger
+from ai.prompts import get_workout_prompt, get_feasibility_prompt
+from core.config import settings
+from core.logger import get_logger
 from typing import Dict, Any
 from google import genai
 from google.genai import types

@@ -3,8 +3,8 @@ AI Services
 Business logic for AI operations
 """
 
-from schemas.ai_schemas import CreateCompleteWorkoutRequest, AdjustWorkoutPlanRequest
 from ai.gemini import GeminiService
+from schemas.ai_schemas import CreateCompleteWorkoutRequest
 
 
 class AIService:

@@ -42,3 +42,26 @@ class UserExperienceLevel(str, Enum):
     BEGINNER = "beginner"
     INTERMEDIATE = "intermediate"
     ADVANCED = "advanced"
+
+
+class DayOfWeek(str, Enum):
+    """
+    Enum for days of the week
+    """
+    MONDAY = "Monday"
+    TUESDAY = "Tuesday"
+    WEDNESDAY = "Wednesday"
+    THURSDAY = "Thursday"
+    FRIDAY = "Friday"
+    SATURDAY = "Saturday"
+    SUNDAY = "Sunday"
+
+
+class ScheduleStatus(str, Enum):
+    """
+    Enum for weekly schedule status
+    """
+    PENDING = "pending"
+    COMPLETED = "completed"
+    SKIPPED = "skipped"
+    SWAPPED = "swapped"

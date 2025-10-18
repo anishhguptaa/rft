@@ -24,9 +24,12 @@ from models.DbModels.workout_log import WorkoutLog # Import the new WorkoutLog m
 from models.DbModels.meal_log import MealLog # Import the new MealLog model
 from models.DbModels.user_progress import UserProgress # Import the new UserProgress model
 from models.DbModels.user_health_profile import UserHealthProfile # Import the new UserHealthProfile model
+from models.DbModels.routines import Routines # Import the new Routines model
+from models.DbModels.weekly_schedule import WeeklySchedule # Import the new WeeklySchedule model
 from ai.routes import router as ai_router
 from api.modules.auth.routers import router as auth_router
 from api.modules.user.routers import router as user_router
+from api.modules.ai_backend_integration.routers import router as ai_backend_router
 
 # Create all tables stored in the Base metadata
 # This will create the 'users' table if it doesn't exist
@@ -52,6 +55,7 @@ app.add_middleware(
 app.include_router(ai_router, prefix="/api/ai", tags=["AI"])
 app.include_router(auth_router, prefix="/api/auth", tags=["Authentication"])
 app.include_router(user_router, prefix="/api/users", tags=["Users"])
+app.include_router(ai_backend_router, prefix="/api/ai-backend", tags=["AI Backend Integration"])
 
 
 # DB health endpoint (verifies app->DB connectivity)
