@@ -18,9 +18,8 @@ from core.db import engine, get_db
 from models.DbModels.user import Base
 from models.DbModels.goal import Goal  # Import the new Goal model
 from models.DbModels.workout_plan import WorkoutPlan # Import the new WorkoutPlan model
-from models.DbModels.daily_workout import DailyWorkout # Import the new DailyWorkout model
-from models.DbModels.exercise import Exercise # Import the new Exercise model
-from models.DbModels.workout_log import WorkoutLog # Import the new WorkoutLog model
+from models.DbModels.daily_user_workout_routine_history import DailyUserWorkoutRoutineHistory # Import the new DailyWorkout model
+from models.DbModels.exercise import Exercise # Import the new Exercise modelfrom models.DbModels.workout_log import WorkoutLog # Import the new WorkoutLog model
 from models.DbModels.meal_log import MealLog # Import the new MealLog model
 from models.DbModels.user_progress import UserProgress # Import the new UserProgress model
 from models.DbModels.user_health_profile import UserHealthProfile # Import the new UserHealthProfile model
@@ -30,6 +29,8 @@ from ai.routes import router as ai_router
 from api.modules.auth.routers import router as auth_router
 from api.modules.user.routers import router as user_router
 from api.modules.ai_backend_integration.routers import router as ai_backend_router
+from api.modules.daily_schedule.routers import router as daily_schedule_router
+from api.modules.workout.routers import router as workout_router
 
 # Create all tables stored in the Base metadata
 # This will create the 'users' table if it doesn't exist
@@ -56,6 +57,8 @@ app.include_router(ai_router, prefix="/api/ai", tags=["AI"])
 app.include_router(auth_router, prefix="/api/auth", tags=["Authentication"])
 app.include_router(user_router, prefix="/api/users", tags=["Users"])
 app.include_router(ai_backend_router, prefix="/api/ai-backend", tags=["AI Backend Integration"])
+app.include_router(daily_schedule_router, prefix="/api/daily-schedule", tags=["Daily Schedule"])
+app.include_router(workout_router, prefix="/api/workout", tags=["Workout"])
 
 
 # DB health endpoint (verifies app->DB connectivity)

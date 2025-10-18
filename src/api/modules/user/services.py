@@ -7,6 +7,8 @@ from sqlalchemy.orm import Session
 from models.DbModels.user import User
 from models.DbModels.user_health_profile import UserHealthProfile
 from models.DbModels.goal import Goal
+from models.DbModels.daily_user_workout_routine_history import DailyUserWorkoutRoutineHistory
+from datetime import date, timedelta
 
 
 def get_user_by_id(db: Session, user_id: int) -> User | None:
@@ -192,3 +194,65 @@ def set_user_goal(
     db.commit()
     db.refresh(new_goal)
     return new_goal
+
+
+def get_user_stats(db: Session, user_id: int) -> dict:
+    """
+    Get user statistics including goal status, live streak, and yesterday's workout status.
+    
+    Args:
+        db: Database session
+        user_id: User ID
+        
+    Returns:
+        Dictionary containing:
+        - isGoalSet: bool - True if user has an active goal
+        - liveStreak: int - Number of consecutive days user has worked out (including today)
+        - YesterdayMissedWorkout: bool - True if user did NOT workout yesterday
+    """
+    
+    # 1. Check if goal is set
+    active_goal = get_active_user_goal(db, user_id)
+    is_goal_set = active_goal is not None
+    
+    # 2. Calculate live streak (consecutive workout days including today)
+    live_streak = 0
+    current_date = date.today()
+    
+    # Check backwards from today to find consecutive workout days
+    while True:
+        workout = (
+            db.query(DailyUserWorkoutRoutineHistory)
+            .filter(
+                DailyUserWorkoutRoutineHistory.UserId == user_id,
+                DailyUserWorkoutRoutineHistory.Date == current_date,
+                DailyUserWorkoutRoutineHistory.IsCompleted == True
+            )
+            .first()
+        )
+        
+        if workout:
+            live_streak += 1
+            current_date -= timedelta(days=1)
+        else:
+            break
+    
+    # 3. Check if user missed workout yesterday
+    yesterday = date.today() - timedelta(days=1)
+    yesterday_workout = (
+        db.query(DailyUserWorkoutRoutineHistory)
+        .filter(
+            DailyUserWorkoutRoutineHistory.UserId == user_id,
+            DailyUserWorkoutRoutineHistory.Date == yesterday,
+            DailyUserWorkoutRoutineHistory.IsCompleted == True
+        )
+        .first()
+    )
+    
+    yesterday_missed_workout = yesterday_workout is None
+    
+    return {
+        "isGoalSet": is_goal_set,
+        "liveStreak": live_streak,
+        "YesterdayMissedWorkout": yesterday_missed_workout
+    }
