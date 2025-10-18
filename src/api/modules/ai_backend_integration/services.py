@@ -50,10 +50,28 @@ def save_ai_workout_plan(
     # Calculate Sunday of current week (6 days after Monday)
     end_date = start_date + timedelta(days=6)
     
+    # Check if a workout plan already exists for this user in the date range
+    existing_plan = (
+        db.query(WorkoutPlan)
+        .filter(
+            WorkoutPlan.UserId == user_id,
+            WorkoutPlan.IsActive == True,
+            WorkoutPlan.StartDate <= end_date,
+            WorkoutPlan.EndDate >= start_date
+        )
+        .first()
+    )
+    
+    # If an existing active plan is found, deactivate it
+    if existing_plan:
+        existing_plan.IsActive = False
+        db.add(existing_plan)
+        db.flush()  # Flush to persist the deactivation
+    
     # Extract data from AI response object (using attributes instead of dict methods)
     routines_data = getattr(ai_response, "routines", [])
     weekly_schedule_data = getattr(ai_response, "weekly_schedule", [])
-    ai_summary = getattr(ai_response, "ai_summary", "")
+    overview = getattr(ai_response, "overview", "")
     
     # Step 1: Create WorkoutPlan
     workout_plan = WorkoutPlan(
@@ -62,7 +80,7 @@ def save_ai_workout_plan(
         StartDate=start_date,
         EndDate=end_date,
         PlanVersion=1,
-        Overview=ai_summary
+        Overview=overview
     )
     db.add(workout_plan)
     db.flush()  # Flush to get the PlanId without committing
