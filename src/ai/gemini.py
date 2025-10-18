@@ -3,14 +3,14 @@ Gemini AI Service
 Handles workout plan generation using Google's Gemini AI
 """
 
-from .prompts import get_workout_prompt, get_feasibility_prompt
-from ..core.config import settings
-from ..core.logger import get_logger
+from ai.prompts import get_workout_prompt, get_feasibility_prompt
+from core.config import settings
+from core.logger import get_logger
 from typing import Dict, Any
 from google import genai
 from google.genai import types
 from pydantic import BaseModel
-from ..schemas.ai_schemas import WorkoutPlanResponse, CreateCompleteWorkoutRequest, RequestFeasibilityResponse
+from schemas.ai_schemas import WorkoutPlanResponse, CreateCompleteWorkoutRequest, RequestFeasibilityResponse
 
 logger = get_logger(__name__)
 
