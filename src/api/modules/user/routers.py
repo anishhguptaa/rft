@@ -30,19 +30,41 @@ router = APIRouter()
 @router.get("/users/{user_id}", response_model=UserResponse)
 def read_user(user_id: int, db: Session = Depends(get_db)):
     """
-    Retrieve a single user by their ID.
+    Retrieve a single user by their ID with additional stats.
 
     Args:
         user_id: The integer ID of the user to retrieve.
         db: Database session dependency
         
     Returns:
-        UserResponse with user details
+        UserResponse with user details including:
+        - isGoalSet: Whether user has an active goal
+        - liveStreak: Number of consecutive workout days
+        - YesterdayMissedWorkout: Whether user missed workout yesterday
     """
+    from api.modules.user.services import get_user_stats
+    
     db_user = get_user_by_id(db, user_id=user_id)
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not found")
-    return db_user
+    
+    # Get user stats
+    user_stats = get_user_stats(db, user_id)
+    
+    # Convert user object to dict and merge with stats
+    user_dict = {
+        "UserId": db_user.UserId,
+        "FullName": db_user.FullName,
+        "Email": db_user.Email,
+        "Gender": db_user.Gender,
+        "Age": db_user.Age,
+        "HeightCm": db_user.HeightCm,
+        "WeightKg": db_user.WeightKg,
+        "UserExperienceLevel": db_user.UserExperienceLevel.value if db_user.UserExperienceLevel else None,
+        **user_stats  # Merge stats (isGoalSet, liveStreak, YesterdayMissedWorkout)
+    }
+    
+    return user_dict
 
 
 @router.post("/users/{user_id}/basic-info", response_model=UserResponse)

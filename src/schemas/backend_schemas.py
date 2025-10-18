@@ -17,6 +17,9 @@ class UserResponse(BaseModel):
     HeightCm: Optional[float] = None # Pydantic will handle the Decimal conversion
     WeightKg: Optional[float] = None
     UserExperienceLevel: Optional[str] = None
+    isGoalSet: Optional[bool] = None
+    liveStreak: Optional[int] = None
+    YesterdayMissedWorkout: Optional[bool] = None
 
     class Config:
         from_attributes = True # Replaces orm_mode in Pydantic v2

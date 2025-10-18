@@ -62,6 +62,7 @@ class ScheduleStatus(str, Enum):
     Enum for weekly schedule status
     """
     PENDING = "pending"
+    STARTED = "started"
     COMPLETED = "completed"
     SKIPPED = "skipped"
     SWAPPED = "swapped"
