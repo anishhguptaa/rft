@@ -1,8 +1,8 @@
 from typing import Dict, Any
-from .prompts_text import WORKOUT_PROMPT_TEMPLATE, REQUEST_FEASIBILITY_PROMPT_TEMPLATE
+from .prompts_text import FIRST_WORKOUT_PROMPT_TEMPLATE, REQUEST_FEASIBILITY_PROMPT_TEMPLATE, ADJUST_WORKOUT_PLAN_PROMPT_TEMPLATE
 
 
-def get_workout_prompt(data: Dict[str, Any]) -> str:
+def get_first_workout_prompt(data: Dict[str, Any]) -> str:
     """Create an optimized prompt for workout plan generation using advanced prompt engineering techniques"""
     
     # Format limitations as a readable list
@@ -32,7 +32,7 @@ def get_workout_prompt(data: Dict[str, Any]) -> str:
         'current_day_index_plus_one': current_day_index + 1
     }
     
-    prompt = WORKOUT_PROMPT_TEMPLATE.format(**template_vars)
+    prompt = FIRST_WORKOUT_PROMPT_TEMPLATE.format(**template_vars)
     
     return prompt
 
@@ -58,5 +58,18 @@ def get_feasibility_prompt(data: Dict[str, Any]) -> str:
     }
     
     prompt = REQUEST_FEASIBILITY_PROMPT_TEMPLATE.format(**template_vars)
+    
+    return prompt
+
+
+def get_adjust_workout_plan_prompt(data: Dict[str, Any]) -> str:
+    """Create a prompt for workout plan adjustment using the same input as workout generation"""
+    
+    template_vars = {
+        'remaining_routines': data['remaining_routines'],
+        'current_day': data['current_day']
+    }
+    
+    prompt = ADJUST_WORKOUT_PLAN_PROMPT_TEMPLATE.format(**template_vars)
     
     return prompt
