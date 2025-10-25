@@ -13,6 +13,7 @@ from schemas.ai_schemas import (
     CreateMealPlanRequest,
     ContinueWorkoutRequest,
 )
+import json
 
 
 class AIService:
@@ -66,7 +67,12 @@ class AIService:
         try:
             request_data = request.model_dump()
             meal_plan_response = await self.gemini_service.create_meal_plan(request_data)
-            save_ai_meal_plan(request.user_id, meal_plan_response)
+            
+            # Convert the meal plan response dictionary to JSON string
+            meal_plan_json = json.dumps(meal_plan_response)
+            
+            # Save the meal plan to the database
+            save_ai_meal_plan(request.user_id, meal_plan_json)
             return True
         except Exception as e:
             raise Exception(f"Failed to generate meal plan: {str(e)}")

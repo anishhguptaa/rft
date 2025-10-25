@@ -21,6 +21,7 @@ from api.modules.user.routers import router as user_router
 from api.modules.ai_backend_integration.routers import router as ai_backend_router
 from api.modules.daily_schedule.routers import router as daily_schedule_router
 from api.modules.workout.routers import router as workout_router
+from api.modules.meals.routers import router as meals_router
 from middleware.auth_middleware import AuthenticationMiddleware
 
 # Create all tables stored in the Base metadata
@@ -52,6 +53,7 @@ app.include_router(user_router, prefix="/api/users", tags=["Users"])
 app.include_router(ai_backend_router, prefix="/api/ai-backend", tags=["AI Backend Integration"])
 app.include_router(daily_schedule_router, prefix="/api/daily-schedule", tags=["Daily Schedule"])
 app.include_router(workout_router, prefix="/api/workout", tags=["Workout"])
+app.include_router(meals_router, prefix="/api/meals", tags=["Meals"])
 
 
 # DB health endpoint (verifies app->DB connectivity)

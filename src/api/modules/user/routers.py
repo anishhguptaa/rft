@@ -154,7 +154,7 @@ def get_user_health_profile(
 
 
 @router.post("/users/{user_id}/goal", response_model=UserGoalResponse)
-def set_user_goal_endpoint(
+async def set_user_goal_endpoint(
     user_id: int,
     payload: SetUserGoalRequest,
     db: Session = Depends(get_db),
@@ -164,9 +164,11 @@ def set_user_goal_endpoint(
     If an active goal exists, it will be soft deleted (Active=False)
     and a new active goal will be created.
     Only one goal can be active at a time.
+    
+    Automatically generates the first workout plan using AI after goal creation.
     """
     try:
-        goal = set_user_goal(
+        goal = await set_user_goal(
             db,
             user_id,
             goal_type=payload.GoalType,
@@ -179,6 +181,8 @@ def set_user_goal_endpoint(
         return goal
     except LookupError:
         raise HTTPException(status_code=404, detail="User not found")
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @router.get("/users/{user_id}/goal", response_model=UserGoalResponse)
