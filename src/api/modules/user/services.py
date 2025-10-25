@@ -8,7 +8,9 @@ from models.DbModels.user import User
 from models.DbModels.user_health_profile import UserHealthProfile
 from models.DbModels.goal import Goal
 from models.DbModels.daily_user_workout_routine_history import DailyUserWorkoutRoutineHistory
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
+from schemas.ai_schemas import CreateFirstWorkoutRequest
+from ai.services import AIService
 
 
 def get_user_by_id(db: Session, user_id: int) -> User | None:
@@ -150,7 +152,7 @@ def get_active_user_goal(db: Session, user_id: int) -> Goal | None:
     )
 
 
-def set_user_goal(
+async def set_user_goal(
     db: Session,
     user_id: int,
     *,
@@ -185,7 +187,7 @@ def set_user_goal(
         GoalType=goal_type,
         NoOfWorkoutDaysInWeek=no_of_workout_days_in_week,
         TargetWeight=target_weight,
-        initial_weight=user.CurrentWeight,
+        initial_weight=user.WeightKg,
         TargetDurationInWeeks=target_duration_in_weeks,
         WorkoutEquipment=workout_equipment,
         Remarks=remarks,
@@ -194,6 +196,98 @@ def set_user_goal(
     db.add(new_goal)
     db.commit()
     db.refresh(new_goal)
+    
+    # Generate the first workout plan after goal is set
+    try:
+        # Fetch user health profile for limitations
+        health_profile = db.query(UserHealthProfile).filter(
+            UserHealthProfile.UserId == user_id
+        ).first()
+        
+        # Build user limitations list from health profile
+        user_limitations = []
+        if health_profile:
+            if health_profile.PhysicalLimitations:
+                user_limitations.extend(health_profile.PhysicalLimitations)
+            if health_profile.HealthIssues:
+                user_limitations.extend(health_profile.HealthIssues)
+        
+        # Validate required fields
+        if not user.HeightCm or not user.WeightKg:
+            raise ValueError(f"User {user_id} is missing required health data (height/weight)")
+        
+        if not target_weight or not target_duration_in_weeks or not no_of_workout_days_in_week:
+            raise ValueError(f"Goal is missing required data")
+        
+        # Map experience level enum to string
+        experience_level_map = {
+            "beginner": "beginner",
+            "intermediate": "intermediate",
+            "advanced": "advanced"
+        }
+        experience_level = experience_level_map.get(
+            user.UserExperienceLevel.value.lower() if user.UserExperienceLevel else "beginner",
+            "beginner"
+        )
+        
+        # Map goal type enum to workout goal
+        goal_type_map = {
+            "weight_loss": "weight_loss",
+            "weight_gain": "weight_gain",
+            "muscle_gain": "muscle_gain",
+            "endurance": "endurance",
+            "strength": "strength"
+        }
+        workout_goal = goal_type_map.get(
+            goal_type.value.lower() if goal_type else "muscle_gain",
+            "muscle_gain"
+        )
+        
+        # Map equipment enum to string
+        equipment_map = {
+            "gym": "gym",
+            "home_bodyweight": "home_bodyweight",
+            "home_dumbbells": "home_dumbbells"
+        }
+        equipment = equipment_map.get(
+            workout_equipment.value.lower() if workout_equipment else "gym",
+            "gym"
+        )
+        
+        # Get current day of week
+        current_day = datetime.now().strftime("%A")
+        
+        # Create the AI request
+        ai_request = CreateFirstWorkoutRequest(
+            user_id=user_id,
+            height=int(user.HeightCm),
+            weight=float(user.WeightKg),
+            target_weight=float(target_weight),
+            age=user.Age,
+            gender=user.Gender.lower() if user.Gender else "male",
+            workout_goal=workout_goal,
+            goal_timeline=target_duration_in_weeks,
+            workout_days=no_of_workout_days_in_week,
+            current_day=current_day,
+            equipment=equipment,
+            experience_level=experience_level,
+            user_limitations=user_limitations if user_limitations else None,
+            user_remarks=remarks
+        )
+        
+        # Call AI service to generate workout plan
+        ai_service = AIService()
+        ai_response = await ai_service.generate_first_workout_plan(ai_request)
+        
+        # Check if the AI generation was successful
+        if not ai_response:
+            raise ValueError("AI service failed to generate workout plan")
+        
+    except Exception as e:
+        # Log the error but don't fail the goal creation
+        # The workout plan can be generated later
+        print(f"Warning: Failed to generate initial workout plan: {str(e)}")
+    
     return new_goal
 
 

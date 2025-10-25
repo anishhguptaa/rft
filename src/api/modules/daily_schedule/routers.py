@@ -61,7 +61,7 @@ class UserWorkoutPlanDetailsResponse(BaseModel):
 
 
 @router.get("/user/{user_id}/plan", response_model=UserWorkoutPlanDetailsResponse)
-def get_user_workout_plan(
+async def get_user_workout_plan(
     user_id: int,
     target_date: date = Query(..., description="Date to check for workout plan (YYYY-MM-DD)"),
     db: Session = Depends(get_db),
@@ -74,6 +74,9 @@ def get_user_workout_plan(
     - All routines with exercises
     - Weekly schedule with status
     
+    If no workout plan exists, automatically generates one using AI based on user's
+    profile, goals, and health information.
+    
     Args:
         user_id: User ID
         target_date: Date to check for workout plan (format: YYYY-MM-DD)
@@ -85,7 +88,7 @@ def get_user_workout_plan(
         GET /api/daily-schedule/user/123/plan?target_date=2025-10-18
     """
     try:
-        result = get_user_workout_plan_by_date(
+        result = await get_user_workout_plan_by_date(
             db=db,
             user_id=user_id,
             target_date=target_date
@@ -98,6 +101,12 @@ def get_user_workout_plan(
             )
         
         return result
+    except ValueError as e:
+        # Handle validation errors (missing user data, incomplete goals, etc.)
+        raise HTTPException(
+            status_code=400,
+            detail=str(e)
+        )
     except HTTPException:
         # Re-raise HTTP exceptions
         raise

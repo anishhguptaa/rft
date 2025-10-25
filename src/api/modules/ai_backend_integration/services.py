@@ -76,10 +76,11 @@ def save_ai_workout_plan(
             db.add(existing_plan)
             db.flush()  # Flush to persist the deactivation
         
-        # Extract data from AI response object (using attributes instead of dict methods)
-        routines_data = getattr(ai_response, "routines", [])
-        weekly_schedule_data = getattr(ai_response, "weekly_schedule", [])
-        overview = getattr(ai_response, "overview", "")
+        # Extract data from AI response dictionary
+        routines_data = ai_response.get("routines", [])
+        weekly_schedule_data = ai_response.get("weekly_schedule", [])
+        overview = ai_response.get("overview", "")
+        ai_summary = ai_response.get("ai_summary", "")
         
         # Step 1: Create WorkoutPlan
         workout_plan = WorkoutPlan(
@@ -88,7 +89,8 @@ def save_ai_workout_plan(
             StartDate=start_date,
             EndDate=end_date,
             PlanVersion=1,
-            Overview=overview
+            Overview=overview,
+            Weekly_Plan_Summary = ai_summary
         )
         db.add(workout_plan)
         db.flush()  # Flush to get the PlanId without committing
@@ -97,27 +99,11 @@ def save_ai_workout_plan(
         routine_name_to_id = {}
         
         for routine_data in routines_data:
-            routine_name = getattr(routine_data, "name", None)
-            routine_focus = getattr(routine_data, "focus", None)
+            routine_name = routine_data.get("name", None)
+            routine_focus = routine_data.get("focus", None)
             
-            # Convert the entire routine object to dict for JSON serialization
-            # This handles Pydantic models properly
-            if hasattr(routine_data, "dict"):
-                # Pydantic v1
-                routine_dict = routine_data.dict()
-            elif hasattr(routine_data, "model_dump"):
-                # Pydantic v2
-                routine_dict = routine_data.model_dump()
-            else:
-                # Fallback: try to convert to dict manually
-                routine_dict = {
-                    "name": routine_name,
-                    "focus": routine_focus,
-                    "exercises": [
-                        ex.model_dump() if hasattr(ex, "model_dump") else ex.dict() if hasattr(ex, "dict") else ex
-                        for ex in getattr(routine_data, "exercises", [])
-                    ]
-                }
+            # routine_data is already a dictionary, use it directly
+            routine_dict = routine_data
             
             # Convert entire routine object to JSON string
             routine_json = json.dumps(routine_dict)
@@ -136,9 +122,9 @@ def save_ai_workout_plan(
         
         # Step 3: Create WeeklySchedule entries
         for schedule_data in weekly_schedule_data:
-            day_of_week_str = getattr(schedule_data, "day_of_week", None)
-            routine_name = getattr(schedule_data, "routine_name", None)
-            status_str = getattr(schedule_data, "status", "pending")
+            day_of_week_str = schedule_data.get("day_of_week", None)
+            routine_name = schedule_data.get("routine_name", None)
+            status_str = schedule_data.get("status", "pending")
             
             # Convert day string to enum
             try:

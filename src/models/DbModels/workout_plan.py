@@ -28,6 +28,8 @@ class WorkoutPlan(Base):
     Overview = Column(String(10000), nullable=False)
     MealJson = Column(String, nullable=True)
     CreatedAt = Column(DateTime, server_default=func.now())
+    Weekly_Plan_Summary = Column(String, nullable=True)
+    
 
     def __repr__(self):
         return f"<WorkoutPlan(PlanId={self.PlanId}, Name='{self.PlanName}', UserId={self.UserId})>"

@@ -69,7 +69,7 @@ class DailySchedule(BaseModel):
 
 # Request Schemas
 class CreateFirstWorkoutRequest(BaseModel):
-    user_id: str = Field(..., description="User token")
+    user_id: int = Field(..., description="User token")
     height: int = Field(..., description="Height in centimeters")
     weight: float = Field(..., description="Weight in kilograms")
     target_weight: float = Field(..., description="Target weight in kilograms")
@@ -99,7 +99,7 @@ class CreateFirstWorkoutRequest(BaseModel):
 
 
 class ContinueWorkoutRequest(BaseModel):
-    user_id: str = Field(..., description="User token")
+    user_id: int = Field(..., description="User token")
     height: int = Field(..., description="Height in centimeters")
     weight: float = Field(..., description="Weight in kilograms")
     target_weight: float = Field(..., description="Target weight in kilograms")
@@ -132,7 +132,7 @@ class ContinueWorkoutRequest(BaseModel):
 
 
 class CreateMealPlanRequest(BaseModel):
-    user_id: str = Field(..., description="User token")
+    user_id: int = Field(..., description="User token")
     height: int = Field(..., description="Height in centimeters")
     weight: float = Field(..., description="Weight in kilograms")
     target_weight: float = Field(..., description="Target weight in kilograms")
