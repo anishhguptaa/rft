@@ -123,11 +123,14 @@ class ContinueWorkoutRequest(BaseModel):
         None,
         description="List of user limitations (e.g., injuries, medical conditions, mobility restrictions)",
     )
+    user_remarks: Optional[str] = Field(
+        None, description="Additional user remarks about the workout plan"
+    )
     last_week_weight_change: Optional[float] = Field(
         None, description="Weight change in kilograms last week"
     )
-    user_remarks: Optional[str] = Field(
-        None, description="Additional user remarks about the workout plan"
+    previous_week_workout_plan_summary: Optional[str] = Field(
+        None, description="Summary of the previous week's workout plan"
     )
 
 
