@@ -189,6 +189,6 @@ Medications: {medications}, Disliked foods: {disliked_foods}, Remarks: {user_rem
 
 # SCHEMA COMPLIANCE
 - Meal fields: name (unique descriptive), time_of_day (when to eat), description (what to eat), ingredients (3-5 key ingredients)
-- Nesting: MealPlanResponse → meals → MealPlan
+- Nesting: MealPlanResponse → daily_meals → DailyMealPlan → meals → MealPlan
 
 Generate personalized meal plan with proper nutritional balance, safety considerations, and cultural adaptations."""

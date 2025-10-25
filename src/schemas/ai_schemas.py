@@ -44,6 +44,13 @@ class MealPlan(BaseModel):
     ingredients: List[str] = Field(..., description="Key ingredients for the meal, maximum 3-5 ingredients")
 
 
+class DailyMealPlan(BaseModel):
+    """Model for a daily meal plan with comprehensive details for meal execution"""
+
+    day_of_week: str = Field(..., description="Day of the week")
+    meals: List[MealPlan] = Field(..., description="List of meals for the day")
+
+
 class Routine(BaseModel):
     """Model for a routine with comprehensive details for workout execution"""
 
@@ -201,4 +208,4 @@ class MealPlanResponse(BaseModel):
         ...,
         description="50 words or less, brief overview of this week's meal plan which you created, expected outcomes, user limitations considered and key nutrition principles",
     )
-    meals: List[MealPlan] = Field(..., description="List of meals for the week")
+    daily_meals: List[DailyMealPlan] = Field(..., description="List of daily meal plans for the week")
