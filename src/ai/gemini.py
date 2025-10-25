@@ -3,7 +3,7 @@ Gemini AI Service
 Handles workout plan generation using Google's Gemini AI
 """
 
-from ai.prompts import get_first_workout_prompt, get_feasibility_prompt
+from ai.prompts import get_first_workout_prompt, get_feasibility_prompt, get_continue_workout_prompt
 from core.config import settings
 from core.logger import get_logger
 from ai.prompts import get_feasibility_prompt
@@ -158,7 +158,16 @@ class GeminiService:
         Continue a personalized workout plan based on user parameters (for non-first workouts)
         """
         try:
-            pass
+            logger.info(f"Generating workout plan for the next week!!")
+            workout_plan_prompt = get_continue_workout_prompt(request_data)
+            workout_plan = self.ask_gemini(
+                prompt=workout_plan_prompt,
+                model=model,
+                output_schema=WorkoutPlanResponse,
+                thinking_budget=True,  # Enable reasoning for complex planning
+                temperature=temperature,
+            )
+            return workout_plan
         except Exception as e:
             logger.error(f"Failed to continue workout plan: {str(e)}", exc_info=True)
             raise

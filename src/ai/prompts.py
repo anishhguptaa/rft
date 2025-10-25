@@ -2,6 +2,8 @@ from typing import Dict, Any
 from .prompts_text import (
     FIRST_WORKOUT_PROMPT_TEMPLATE,
     REQUEST_FEASIBILITY_PROMPT_TEMPLATE,
+    CONTINUE_WORKOUT_PROMPT_TEMPLATE,
+    MEAL_PLAN_PROMPT_TEMPLATE,
 )
 
 
@@ -79,5 +81,56 @@ def get_feasibility_prompt(data: Dict[str, Any]) -> str:
     }
 
     prompt = REQUEST_FEASIBILITY_PROMPT_TEMPLATE.format(**template_vars)
+
+    return prompt
+
+
+def get_continue_workout_prompt(data: Dict[str, Any]) -> str:
+    """Create a prompt for continue workout plan generation using the same input as workout generation"""
+
+    template_vars = {
+        "height": data["height"],
+        "weight": data["weight"],
+        "target_weight": data["target_weight"],
+        "age": data["age"],
+        "gender": data["gender"],
+        "workout_goal": data["workout_goal"],
+        "goal_timeline": data["goal_timeline"],
+        "workout_days": data["workout_days"],
+        "current_day": data["current_day"],
+        "equipment": data["equipment"],
+        "experience_level": data["experience_level"],
+        "user_limitations": data["user_limitations"],
+        "last_week_weight_change": data["last_week_weight_change"],
+        "previous_week_workout_plan_summary": data["previous_week_workout_plan_summary"],
+    }
+
+    prompt = CONTINUE_WORKOUT_PROMPT_TEMPLATE.format(**template_vars)
+
+    return prompt
+
+
+def get_meal_plan_prompt(data: Dict[str, Any]) -> str:
+    """Create a prompt for meal plan generation using the same input as workout generation"""
+
+    template_vars = {
+        "height": data["height"],
+        "weight": data["weight"],
+        "target_weight": data["target_weight"],
+        "age": data["age"],
+        "gender": data["gender"],
+        "current_day": data["current_day"],
+        "meal_plan_goal": data["meal_plan_goal"],
+        "user_remarks": data["user_remarks"],
+        "allergies": data["allergies"],
+        "intolerances": data["intolerances"],
+        "health_conditions": data["health_conditions"],
+        "medications": data["medications"],
+        "diet_type": data["diet_type"],
+        "disliked_foods": data["disliked_foods"],
+        "location_country": data["location_country"],
+    }
+
+    prompt = MEAL_PLAN_PROMPT_TEMPLATE.format(**template_vars)
 
     return prompt

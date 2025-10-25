@@ -3,6 +3,10 @@ AI Services
 Business logic for AI operations
 """
 
+from api.modules.ai_backend_integration.services import (
+    save_ai_workout_plan,
+    save_ai_meal_plan,
+)
 from ai.gemini import GeminiService
 from schemas.ai_schemas import (
     CreateFirstWorkoutRequest,
@@ -31,10 +35,9 @@ class AIService:
         """
         try:
             request_data = request.model_dump()
-            workout_generation_response = (
-                await self.gemini_service.generate_first_workout_plan(request_data)
-            )
-            return workout_generation_response
+            workout_generation_response = await self.gemini_service.generate_first_workout_plan(request_data)
+            save_ai_workout_plan(request.user_id, workout_generation_response)
+            return True
         except Exception as e:
             raise Exception(f"Failed to generate first workout plan: {str(e)}")
 
@@ -42,7 +45,13 @@ class AIService:
         """
         Continue a personalized workout plan using AI (for non-first workouts)
         """
-        pass
+        try:
+            request_data = request.model_dump()
+            workout_generation_response = await self.gemini_service.continue_workout_plan(request_data)
+            save_ai_workout_plan(request.user_id, workout_generation_response)
+            return True
+        except Exception as e:
+            raise Exception(f"Failed to continue workout plan: {str(e)}")
 
     async def generate_meal_plan(self, request: CreateMealPlanRequest) -> dict:
         """
@@ -54,4 +63,10 @@ class AIService:
         Returns:
             dict containing the generated meal plan
         """
-        pass
+        try:
+            request_data = request.model_dump()
+            meal_plan_response = await self.gemini_service.create_meal_plan(request_data)
+            save_ai_meal_plan(request.user_id, meal_plan_response)
+            return True
+        except Exception as e:
+            raise Exception(f"Failed to generate meal plan: {str(e)}")
