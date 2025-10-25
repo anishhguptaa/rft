@@ -141,6 +141,7 @@ class CreateMealPlanRequest(BaseModel):
     target_weight: float = Field(..., description="Target weight in kilograms")
     age: int = Field(..., description="Age in years")
     gender: Gender = Field(..., description="Gender")
+    current_day: str = Field(..., description="Current day of the week")
     meal_plan_goal: MealPlanGoal = Field(
         ...,
         description="Primary meal plan goal",
