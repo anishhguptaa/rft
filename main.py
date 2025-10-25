@@ -49,8 +49,12 @@ app.add_middleware(AuthenticationMiddleware)
 # Include routers
 app.include_router(auth_router, prefix="/api/auth", tags=["Authentication"])
 app.include_router(user_router, prefix="/api/users", tags=["Users"])
-app.include_router(ai_backend_router, prefix="/api/ai-backend", tags=["AI Backend Integration"])
-app.include_router(daily_schedule_router, prefix="/api/daily-schedule", tags=["Daily Schedule"])
+app.include_router(
+    ai_backend_router, prefix="/api/ai-backend", tags=["AI Backend Integration"]
+)
+app.include_router(
+    daily_schedule_router, prefix="/api/daily-schedule", tags=["Daily Schedule"]
+)
 app.include_router(workout_router, prefix="/api/workout", tags=["Workout"])
 
 
@@ -67,6 +71,7 @@ async def db_health(db: Session = Depends(get_db)):
 
 
 @app.get("/health", tags=["Root"])
+@app.get("/", tags=["Root"])
 async def root():
     """Root endpoint - health check"""
     return {
