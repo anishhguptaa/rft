@@ -77,7 +77,7 @@ def signup(request: SignupRequest, response: Response, db: Session = Depends(get
             key="access_token",
             value=tokens["access_token"],
             httponly=True,
-            secure=not settings.DEBUG,  # Only send over HTTPS in production
+            secure=settings.DEBUG,  # Only send over HTTPS in production
             samesite="none",  # CSRF protection, allows cross-site
             max_age=900,  # 15 minutes in seconds
         )
@@ -87,7 +87,7 @@ def signup(request: SignupRequest, response: Response, db: Session = Depends(get
             key="refresh_token",
             value=tokens["refresh_token"],
             httponly=True,
-            secure=not settings.DEBUG,  # Only send over HTTPS in production
+            secure=settings.DEBUG,  # Only send over HTTPS in production
             samesite="none",
             max_age=604800,  # 7 days in seconds
         )
@@ -162,7 +162,7 @@ def login(request: LoginRequest, response: Response, db: Session = Depends(get_d
         key="access_token",
         value=tokens["access_token"],
         httponly=True,
-        secure=not settings.DEBUG,  # Only send over HTTPS in production
+        secure=settings.DEBUG,  # Only send over HTTPS in production
         samesite="none",
         max_age=900,  # 15 minutes in seconds
     )
@@ -172,7 +172,7 @@ def login(request: LoginRequest, response: Response, db: Session = Depends(get_d
         key="refresh_token",
         value=tokens["refresh_token"],
         httponly=True,
-        secure=not settings.DEBUG,  # Only send over HTTPS in production
+        secure=settings.DEBUG,  # Only send over HTTPS in production
         samesite="none",
         max_age=604800,  # 7 days in seconds
     )
@@ -266,7 +266,7 @@ def refresh_token(request: Request, response: Response, db: Session = Depends(ge
         key="access_token",
         value=tokens["access_token"],
         httponly=True,
-        secure=not settings.DEBUG,  # Only send over HTTPS in production
+        secure=settings.DEBUG,  # Only send over HTTPS in production
         samesite="none",
         max_age=900,  # 15 minutes in seconds
     )
@@ -276,7 +276,7 @@ def refresh_token(request: Request, response: Response, db: Session = Depends(ge
         key="refresh_token",
         value=tokens["refresh_token"],
         httponly=True,
-        secure=not settings.DEBUG,  # Only send over HTTPS in production
+        secure=settings.DEBUG,  # Only send over HTTPS in production
         samesite="none",
         max_age=604800,  # 7 days in seconds
     )
