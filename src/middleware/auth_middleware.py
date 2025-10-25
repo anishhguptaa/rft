@@ -34,6 +34,7 @@ class AuthenticationMiddleware(BaseHTTPMiddleware):
         "/docs",
         "/redoc",
         "/openapi.json",
+        "/"
     ]
     
     def __init__(self, app):
