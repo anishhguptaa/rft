@@ -3,14 +3,24 @@ Gemini AI Service
 Handles workout plan generation using Google's Gemini AI
 """
 
-from ai.prompts import get_workout_prompt, get_feasibility_prompt
+from ai.prompts import get_first_workout_prompt, get_feasibility_prompt
+from core.config import settings
+from core.logger import get_logger
+from ai.prompts import get_feasibility_prompt
 from core.config import settings
 from core.logger import get_logger
 from typing import Dict, Any
 from google import genai
 from google.genai import types
 from pydantic import BaseModel
-from schemas.ai_schemas import WorkoutPlanResponse, CreateCompleteWorkoutRequest, RequestFeasibilityResponse
+from schemas.ai_schemas import (
+    WorkoutPlanResponse,
+    CreateFirstWorkoutRequest,
+    RequestFeasibilityResponse,
+    ContinueWorkoutRequest,
+    CreateMealPlanRequest,
+    MealPlanResponse,
+)
 
 logger = get_logger(__name__)
 
@@ -37,7 +47,7 @@ class GeminiService:
     ) -> Dict[str, Any]:
         """
         Ask Gemini a question with structured output and thinking
-        
+
         Args:
             prompt: The input prompt
             model: Gemini model to use
@@ -50,7 +60,9 @@ class GeminiService:
                 config = types.GenerateContentConfig(
                     response_mime_type="application/json",
                     response_schema=output_schema,
-                    thinking_config=types.ThinkingConfig(thinking_budget=-1),  # Enable reasoning
+                    thinking_config=types.ThinkingConfig(
+                        thinking_budget=-1
+                    ),  # Enable reasoning
                     temperature=temperature,
                 )
             elif output_schema and not thinking_budget:
@@ -75,6 +87,8 @@ class GeminiService:
                 model=model, contents=prompt, config=config
             )
 
+            logger.info(f"Gemini API Response: {response}.")
+
             if output_schema:
                 result = response.parsed.model_dump()
             else:
@@ -86,9 +100,9 @@ class GeminiService:
             logger.error(f"Error calling Gemini API: {str(e)}", exc_info=True)
             raise
 
-    async def generate_workout_plan(
+    async def generate_first_workout_plan(
         self,
-        request_data: CreateCompleteWorkoutRequest,
+        request_data: CreateFirstWorkoutRequest,
         model: str = "gemini-2.5-flash",
         temperature: float = 0.5,
     ) -> Dict[str, Any]:
@@ -96,7 +110,7 @@ class GeminiService:
         Generate a personalized workout plan based on user parameters
 
         Args:
-            request_data: Dictionary containing user parameters from CreateCompleteWorkoutRequest
+            request_data: Dictionary containing user parameters from CreateFirstWorkoutRequest
             model: Gemini model to use for generation
             temperature: Controls randomness (0.0-1.0, lower = more consistent)
 
@@ -117,8 +131,10 @@ class GeminiService:
                 logger.info(f"Workout Plan Request is not feasible")
                 return feasibility
             else:
-                logger.info(f"Workout Plan Request is feasible ... generating workout plan!!")
-                workout_plan_prompt = get_workout_prompt(request_data)
+                logger.info(
+                    f"Workout Plan Request is feasible ... generating workout plan!!"
+                )
+                workout_plan_prompt = get_first_workout_prompt(request_data)
                 workout_plan = self.ask_gemini(
                     prompt=workout_plan_prompt,
                     model=model,
@@ -130,4 +146,34 @@ class GeminiService:
 
         except Exception as e:
             logger.error(f"Failed to generate workout plan: {str(e)}", exc_info=True)
+            raise
+
+    async def continue_workout_plan(
+        self,
+        request_data: ContinueWorkoutRequest,
+        model: str = "gemini-2.5-flash",
+        temperature: float = 0.5,
+    ) -> Dict[str, Any]:
+        """
+        Continue a personalized workout plan based on user parameters (for non-first workouts)
+        """
+        try:
+            pass
+        except Exception as e:
+            logger.error(f"Failed to continue workout plan: {str(e)}", exc_info=True)
+            raise
+
+    async def create_meal_plan(
+        self,
+        request_data: CreateMealPlanRequest,
+        model: str = "gemini-2.5-flash",
+        temperature: float = 0.5,
+    ) -> Dict[str, Any]:
+        """
+        Generate a personalized meal plan based on user parameters
+        """
+        try:
+            pass
+        except Exception as e:
+            logger.error(f"Failed to create meal plan: {str(e)}", exc_info=True)
             raise
