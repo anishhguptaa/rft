@@ -78,7 +78,7 @@ def signup(request: SignupRequest, response: Response, db: Session = Depends(get
             value=tokens["access_token"],
             httponly=True,
             secure=not settings.DEBUG,  # Only send over HTTPS in production
-            samesite="lax",  # CSRF protection
+            samesite="none",  # CSRF protection, allows cross-site
             max_age=900,  # 15 minutes in seconds
         )
         
@@ -88,7 +88,7 @@ def signup(request: SignupRequest, response: Response, db: Session = Depends(get
             value=tokens["refresh_token"],
             httponly=True,
             secure=not settings.DEBUG,  # Only send over HTTPS in production
-            samesite="lax",
+            samesite="none",
             max_age=604800,  # 7 days in seconds
         )
         
@@ -163,7 +163,7 @@ def login(request: LoginRequest, response: Response, db: Session = Depends(get_d
         value=tokens["access_token"],
         httponly=True,
         secure=not settings.DEBUG,  # Only send over HTTPS in production
-        samesite=None,
+        samesite="none",
         max_age=900,  # 15 minutes in seconds
     )
     
@@ -173,7 +173,7 @@ def login(request: LoginRequest, response: Response, db: Session = Depends(get_d
         value=tokens["refresh_token"],
         httponly=True,
         secure=not settings.DEBUG,  # Only send over HTTPS in production
-        samesite=None,
+        samesite="none",
         max_age=604800,  # 7 days in seconds
     )
     
@@ -267,7 +267,7 @@ def refresh_token(request: Request, response: Response, db: Session = Depends(ge
         value=tokens["access_token"],
         httponly=True,
         secure=not settings.DEBUG,  # Only send over HTTPS in production
-        samesite=None,
+        samesite="none",
         max_age=900,  # 15 minutes in seconds
     )
     
@@ -277,7 +277,7 @@ def refresh_token(request: Request, response: Response, db: Session = Depends(ge
         value=tokens["refresh_token"],
         httponly=True,
         secure=not settings.DEBUG,  # Only send over HTTPS in production
-        samesite=None,
+        samesite="none",
         max_age=604800,  # 7 days in seconds
     )
     
@@ -321,8 +321,8 @@ def logout(request: Request, response: Response, db: Session = Depends(get_db)):
         logger.info("No refresh token found in cookies")
     
     # Clear both cookies
-    response.delete_cookie(key="access_token", samesite=None)
-    response.delete_cookie(key="refresh_token", samesite=None)
+    response.delete_cookie(key="access_token", samesite="none")
+    response.delete_cookie(key="refresh_token", samesite="none")
     
     logger.info("Logout completed successfully")
     return LogoutResponse(
