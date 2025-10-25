@@ -26,6 +26,7 @@ class WorkoutPlan(Base):
     IsActive = Column(Boolean, default=True)
     PlanVersion = Column(Integer, default=1)
     Overview = Column(String(10000), nullable=False)
+    MealJson = Column(String, nullable=True)
     CreatedAt = Column(DateTime, server_default=func.now())
 
     def __repr__(self):
