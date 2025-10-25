@@ -6,7 +6,7 @@ Handles workout plan generation using Google's Gemini AI
 from ai.prompts import get_first_workout_prompt, get_feasibility_prompt, get_continue_workout_prompt
 from core.config import settings
 from core.logger import get_logger
-from ai.prompts import get_feasibility_prompt
+from ai.prompts import get_feasibility_prompt, get_meal_plan_prompt
 from core.config import settings
 from core.logger import get_logger
 from typing import Dict, Any
@@ -182,7 +182,16 @@ class GeminiService:
         Generate a personalized meal plan based on user parameters
         """
         try:
-            pass
+            logger.info(f"Generating meal plan!!")
+            meal_plan_prompt = get_meal_plan_prompt(request_data)
+            meal_plan = self.ask_gemini(
+                prompt=meal_plan_prompt,
+                model=model,
+                output_schema=MealPlanResponse,
+                thinking_budget=True,  # Enable reasoning for complex planning
+                temperature=temperature,
+            )
+            return meal_plan
         except Exception as e:
             logger.error(f"Failed to create meal plan: {str(e)}", exc_info=True)
             raise
