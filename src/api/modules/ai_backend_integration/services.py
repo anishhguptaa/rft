@@ -7,19 +7,22 @@ from sqlalchemy.orm import Session
 from models.DbModels.workout_plan import WorkoutPlan
 from models.DbModels.routines import Routines
 from models.DbModels.weekly_schedule import WeeklySchedule
+from models.DbModels.user import User
+from models.DbModels.daily_user_workout_routine_history import DailyUserWorkoutRoutineHistory
 from models.Enums.enums import DayOfWeek, ScheduleStatus
-from typing import Dict, Any, List
-from datetime import datetime, timedelta
+from typing import Dict, Any, List, Optional
+from datetime import datetime, timedelta, date
+from core.db import SessionLocal
 import json
 
 
 def save_ai_workout_plan(
-    db: Session,
-    user_id: int,
-    ai_response: Any  # Changed to Any to accept object with attributes
+    ai_response: Any  # AI response object with user_id and other attributes
 ) -> WorkoutPlan:
     """
     Save AI-generated workout plan to database.
+    
+    Creates its own database session and manages the transaction.
     
     Parses the AI response object and creates records in:
     - workout_plans table
@@ -30,138 +33,150 @@ def save_ai_workout_plan(
     Monday (start) and Sunday (end).
     
     Args:
-        db: Database session
-        user_id: User ID for whom the plan is created
         ai_response: AI response object with attributes:
+            - user_id: User ID for whom the plan is created
             - routines: List of routine objects
             - weekly_schedule: List of schedule objects
-            - ai_summary: String summary
+            - overview: String summary/overview
         
     Returns:
         WorkoutPlan: The created workout plan object
     """
     
-    # Calculate current week's start (Monday) and end (Sunday) dates
-    today = datetime.now().date()
-    # Get the weekday (0=Monday, 6=Sunday)
-    weekday = today.weekday()
-    # Calculate Monday of current week
-    start_date = today - timedelta(days=weekday)
-    # Calculate Sunday of current week (6 days after Monday)
-    end_date = start_date + timedelta(days=6)
+    # Create database session
+    db = SessionLocal()
     
-    # Check if a workout plan already exists for this user in the date range
-    existing_plan = (
-        db.query(WorkoutPlan)
-        .filter(
-            WorkoutPlan.UserId == user_id,
-            WorkoutPlan.IsActive == True,
-            WorkoutPlan.StartDate <= end_date,
-            WorkoutPlan.EndDate >= start_date
+    try:
+        # Extract user_id from AI response
+        user_id = getattr(ai_response, "user_id", None)
+        if not user_id:
+            raise ValueError("user_id is required in ai_response")
+        
+        # Calculate current week's start (Monday) and end (Sunday) dates
+        today = datetime.now().date()
+        # Get the weekday (0=Monday, 6=Sunday)
+        weekday = today.weekday()
+        # Calculate Monday of current week
+        start_date = today - timedelta(days=weekday)
+        # Calculate Sunday of current week (6 days after Monday)
+        end_date = start_date + timedelta(days=6)
+        
+        # Check if a workout plan already exists for this user in the date range
+        existing_plan = (
+            db.query(WorkoutPlan)
+            .filter(
+                WorkoutPlan.UserId == user_id,
+                WorkoutPlan.IsActive == True,
+                WorkoutPlan.StartDate <= end_date,
+                WorkoutPlan.EndDate >= start_date
+            )
+            .first()
         )
-        .first()
-    )
-    
-    # If an existing active plan is found, deactivate it
-    if existing_plan:
-        existing_plan.IsActive = False
-        db.add(existing_plan)
-        db.flush()  # Flush to persist the deactivation
-    
-    # Extract data from AI response object (using attributes instead of dict methods)
-    routines_data = getattr(ai_response, "routines", [])
-    weekly_schedule_data = getattr(ai_response, "weekly_schedule", [])
-    overview = getattr(ai_response, "overview", "")
-    
-    # Step 1: Create WorkoutPlan
-    workout_plan = WorkoutPlan(
-        UserId=user_id,
-        GeneratedByAI=True,
-        StartDate=start_date,
-        EndDate=end_date,
-        PlanVersion=1,
-        Overview=overview
-    )
-    db.add(workout_plan)
-    db.flush()  # Flush to get the PlanId without committing
-    
-    # Step 2: Create Routines and map routine names to IDs
-    routine_name_to_id = {}
-    
-    for routine_data in routines_data:
-        routine_name = getattr(routine_data, "name", None)
-        routine_focus = getattr(routine_data, "focus", None)
         
-        # Convert the entire routine object to dict for JSON serialization
-        # This handles Pydantic models properly
-        if hasattr(routine_data, "dict"):
-            # Pydantic v1
-            routine_dict = routine_data.dict()
-        elif hasattr(routine_data, "model_dump"):
-            # Pydantic v2
-            routine_dict = routine_data.model_dump()
-        else:
-            # Fallback: try to convert to dict manually
-            routine_dict = {
-                "name": routine_name,
-                "focus": routine_focus,
-                "exercises": [
-                    ex.model_dump() if hasattr(ex, "model_dump") else ex.dict() if hasattr(ex, "dict") else ex
-                    for ex in getattr(routine_data, "exercises", [])
-                ]
-            }
+        # If an existing active plan is found, deactivate it
+        if existing_plan:
+            existing_plan.IsActive = False
+            db.add(existing_plan)
+            db.flush()  # Flush to persist the deactivation
         
-        # Convert entire routine object to JSON string
-        routine_json = json.dumps(routine_dict)
+        # Extract data from AI response object (using attributes instead of dict methods)
+        routines_data = getattr(ai_response, "routines", [])
+        weekly_schedule_data = getattr(ai_response, "weekly_schedule", [])
+        overview = getattr(ai_response, "overview", "")
         
-        routine = Routines(
-            PlanId=workout_plan.PlanId,
-            RoutineName=routine_name,
-            Focus=routine_focus,
-            RoutineJson=routine_json
+        # Step 1: Create WorkoutPlan
+        workout_plan = WorkoutPlan(
+            UserId=user_id,
+            GeneratedByAI=True,
+            StartDate=start_date,
+            EndDate=end_date,
+            PlanVersion=1,
+            Overview=overview
         )
-        db.add(routine)
-        db.flush()  # Flush to get the RoutineId
+        db.add(workout_plan)
+        db.flush()  # Flush to get the PlanId without committing
         
-        # Map routine name to ID for weekly schedule
-        routine_name_to_id[routine_name] = routine.RoutineId
+        # Step 2: Create Routines and map routine names to IDs
+        routine_name_to_id = {}
+        
+        for routine_data in routines_data:
+            routine_name = getattr(routine_data, "name", None)
+            routine_focus = getattr(routine_data, "focus", None)
+            
+            # Convert the entire routine object to dict for JSON serialization
+            # This handles Pydantic models properly
+            if hasattr(routine_data, "dict"):
+                # Pydantic v1
+                routine_dict = routine_data.dict()
+            elif hasattr(routine_data, "model_dump"):
+                # Pydantic v2
+                routine_dict = routine_data.model_dump()
+            else:
+                # Fallback: try to convert to dict manually
+                routine_dict = {
+                    "name": routine_name,
+                    "focus": routine_focus,
+                    "exercises": [
+                        ex.model_dump() if hasattr(ex, "model_dump") else ex.dict() if hasattr(ex, "dict") else ex
+                        for ex in getattr(routine_data, "exercises", [])
+                    ]
+                }
+            
+            # Convert entire routine object to JSON string
+            routine_json = json.dumps(routine_dict)
+            
+            routine = Routines(
+                PlanId=workout_plan.PlanId,
+                RoutineName=routine_name,
+                Focus=routine_focus,
+                RoutineJson=routine_json
+            )
+            db.add(routine)
+            db.flush()  # Flush to get the RoutineId
+            
+            # Map routine name to ID for weekly schedule
+            routine_name_to_id[routine_name] = routine.RoutineId
+        
+        # Step 3: Create WeeklySchedule entries
+        for schedule_data in weekly_schedule_data:
+            day_of_week_str = getattr(schedule_data, "day_of_week", None)
+            routine_name = getattr(schedule_data, "routine_name", None)
+            status_str = getattr(schedule_data, "status", "pending")
+            
+            # Convert day string to enum
+            try:
+                day_of_week = DayOfWeek[day_of_week_str.upper()]
+            except (KeyError, AttributeError):
+                # Default to Monday if invalid
+                day_of_week = DayOfWeek.MONDAY
+            
+            # Convert status string to enum
+            try:
+                status = ScheduleStatus[status_str.upper()]
+            except (KeyError, AttributeError):
+                status = ScheduleStatus.PENDING
+            
+            # Get routine ID from name
+            routine_id = routine_name_to_id.get(routine_name)
+            
+            weekly_schedule = WeeklySchedule(
+                PlanId=workout_plan.PlanId,
+                DayOfWeek=day_of_week,
+                RoutineId=routine_id,
+                Status=status,
+                IsRestDay=(routine_id is None)  # If no routine, it's a rest day
+            )
+            db.add(weekly_schedule)
     
-    # Step 3: Create WeeklySchedule entries
-    for schedule_data in weekly_schedule_data:
-        day_of_week_str = getattr(schedule_data, "day_of_week", None)
-        routine_name = getattr(schedule_data, "routine_name", None)
-        status_str = getattr(schedule_data, "status", "pending")
+        # Commit all changes
+        db.commit()
+        db.refresh(workout_plan)
         
-        # Convert day string to enum
-        try:
-            day_of_week = DayOfWeek[day_of_week_str.upper()]
-        except (KeyError, AttributeError):
-            # Default to Monday if invalid
-            day_of_week = DayOfWeek.MONDAY
-        
-        # Convert status string to enum
-        try:
-            status = ScheduleStatus[status_str.upper()]
-        except (KeyError, AttributeError):
-            status = ScheduleStatus.PENDING
-        
-        # Get routine ID from name
-        routine_id = routine_name_to_id.get(routine_name)
-        
-        weekly_schedule = WeeklySchedule(
-            PlanId=workout_plan.PlanId,
-            DayOfWeek=day_of_week,
-            RoutineId=routine_id,
-            Status=status,
-            IsRestDay=(routine_id is None)  # If no routine, it's a rest day
-        )
-        db.add(weekly_schedule)
+        return workout_plan
     
-    # Commit all changes
-    db.commit()
-    db.refresh(workout_plan)
-    
-    return workout_plan
+    finally:
+        # Always close the database session
+        db.close()
 
 
 def get_workout_plan_with_details(
@@ -194,3 +209,91 @@ def get_workout_plan_with_details(
         "routines": routines,
         "weekly_schedule": weekly_schedule
     }
+
+
+def get_user_weight_history(user_id: int) -> Dict[str, Any]:
+    """
+    Get user's current weight and last week's weight history.
+    
+    Creates its own database session and manages the transaction.
+    
+    Retrieves:
+    - Current weight from user table
+    - Last week's weight logged during workouts (Monday to Sunday)
+    
+    Args:
+        user_id: User ID
+        
+    Returns:
+        Dictionary containing:
+        - CurrentWeight: User's current weight
+        - LastWeekWeight: Dictionary mapping day names to weights
+        
+    Example return:
+        {
+            "CurrentWeight": 58.5,
+            "LastWeekWeight": {
+                "Monday": 55.0,
+                "Tuesday": 56.0,
+                "Wednesday": 57.0,
+                "Thursday": None,
+                "Friday": 58.0,
+                "Saturday": None,
+                "Sunday": 58.5
+            }
+        }
+    """
+    
+    # Create database session
+    db = SessionLocal()
+    
+    try:
+        # Get user's current weight
+        user = db.query(User).filter(User.UserId == user_id).first()
+        current_weight = user.CurrentWeight if user else None
+        
+        # Calculate last week's date range (Monday to Sunday)
+        today = date.today()
+        # Get days since last Monday
+        days_since_monday = today.weekday()
+        # Calculate last week's Monday (7 days before this week's Monday)
+        last_week_monday = today - timedelta(days=days_since_monday + 7)
+        # Calculate last week's Sunday
+        last_week_sunday = last_week_monday + timedelta(days=6)
+        
+        # Get workout history for last week
+        workout_history = (
+            db.query(DailyUserWorkoutRoutineHistory)
+            .filter(
+                DailyUserWorkoutRoutineHistory.UserId == user_id,
+                DailyUserWorkoutRoutineHistory.Date >= last_week_monday,
+                DailyUserWorkoutRoutineHistory.Date <= last_week_sunday,
+                DailyUserWorkoutRoutineHistory.IsCompleted == True
+            )
+            .order_by(DailyUserWorkoutRoutineHistory.Date)
+            .all()
+        )
+        
+        # Create a dictionary mapping dates to weights
+        date_to_weight = {
+            workout.Date: workout.TodayWeight
+            for workout in workout_history
+            if workout.TodayWeight is not None
+        }
+        
+        # Build last week's weight dictionary with day names
+        last_week_weight = {}
+        day_names = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+        
+        for i, day_name in enumerate(day_names):
+            day_date = last_week_monday + timedelta(days=i)
+            last_week_weight[day_name] = date_to_weight.get(day_date)
+        
+        return {
+            "CurrentWeight": current_weight,
+            "LastWeekWeight": last_week_weight
+        }
+    
+    finally:
+        # Always close the database session
+        db.close()

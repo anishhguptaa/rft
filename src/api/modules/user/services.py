@@ -185,6 +185,7 @@ def set_user_goal(
         GoalType=goal_type,
         NoOfWorkoutDaysInWeek=no_of_workout_days_in_week,
         TargetWeight=target_weight,
+        initial_weight=user.CurrentWeight,
         TargetDurationInWeeks=target_duration_in_weeks,
         WorkoutEquipment=workout_equipment,
         Remarks=remarks,
