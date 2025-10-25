@@ -8,8 +8,11 @@ from models.DbModels.user import User
 from models.DbModels.user_session import UserSession
 from core.password_utils import hash_password, verify_password
 from core.jwt_utils import create_access_token, create_refresh_token, verify_token, get_token_expiry
+from core.logger import get_logger
 from datetime import datetime
 from typing import Optional, Dict, Any
+
+logger = get_logger(__name__)
 
 
 def get_user_by_email(db: Session, email: str) -> Optional[User]:
@@ -42,13 +45,17 @@ def create_user(db: Session, email: str, password: str, full_name: str = "") -> 
     Raises:
         ValueError: If email already exists
     """
+    logger.info(f"Creating new user with email: {email}")
+    
     # Check if user already exists
     existing_user = get_user_by_email(db, email)
     if existing_user:
+        logger.warning(f"User creation failed - email already exists: {email}")
         raise ValueError("Email already registered")
     
     # Hash the password
     password_hash = hash_password(password)
+    logger.debug("Password hashed successfully")
     
     # Create new user
     new_user = User(
@@ -61,6 +68,7 @@ def create_user(db: Session, email: str, password: str, full_name: str = "") -> 
     db.commit()
     db.refresh(new_user)
     
+    logger.info(f"User created successfully with ID: {new_user.UserId}")
     return new_user
 
 
@@ -76,15 +84,20 @@ def authenticate_user(db: Session, email: str, password: str) -> Optional[User]:
     Returns:
         User object if authentication successful, None otherwise
     """
+    logger.debug(f"Authenticating user with email: {email}")
+    
     user = get_user_by_email(db, email)
     
     if not user:
+        logger.debug(f"Authentication failed - user not found: {email}")
         return None
     
     # Verify password using bcrypt
     if not verify_password(password, user.PasswordHash):
+        logger.debug(f"Authentication failed - invalid password for email: {email}")
         return None
     
+    logger.debug(f"Authentication successful for user ID: {user.UserId}")
     return user
 
 
@@ -100,6 +113,8 @@ def create_user_session(db: Session, user_id: int, refresh_token: str) -> UserSe
     Returns:
         Created UserSession object
     """
+    logger.debug(f"Creating session for user ID: {user_id}")
+    
     expires_at = get_token_expiry("refresh")
     
     session = UserSession(
@@ -113,6 +128,7 @@ def create_user_session(db: Session, user_id: int, refresh_token: str) -> UserSe
     db.commit()
     db.refresh(session)
     
+    logger.debug(f"Session created successfully with ID: {session.SessionId}")
     return session
 
 
@@ -147,16 +163,20 @@ def invalidate_session(db: Session, refresh_token: str) -> bool:
     Returns:
         True if session was invalidated, False if not found
     """
+    logger.debug("Invalidating user session")
+    
     session = db.query(UserSession).filter(
         UserSession.RefreshToken == refresh_token
     ).first()
     
     if not session:
+        logger.warning("Session not found for invalidation")
         return False
     
     session.IsValid = False
     db.commit()
     
+    logger.debug(f"Session invalidated successfully for user ID: {session.UserId}")
     return True
 
 

@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from core.db import get_db
+from core.logger import get_logger
 from api.modules.user.services import (
     get_user_by_id,
     update_user_basic_info,
@@ -23,6 +24,8 @@ from schemas.backend_schemas import (
     SetUserGoalRequest,
     UserGoalResponse,
 )
+
+logger = get_logger(__name__)
 
 router = APIRouter()
 
@@ -42,14 +45,20 @@ def read_user(user_id: int, db: Session = Depends(get_db)):
         - liveStreak: Number of consecutive workout days
         - YesterdayMissedWorkout: Whether user missed workout yesterday
     """
+    logger.info(f"Retrieving user data for user ID: {user_id}")
+    
     from api.modules.user.services import get_user_stats
     
     db_user = get_user_by_id(db, user_id=user_id)
     if db_user is None:
+        logger.warning(f"User not found: {user_id}")
         raise HTTPException(status_code=404, detail="User not found")
+    
+    logger.debug(f"User found: {db_user.Email}")
     
     # Get user stats
     user_stats = get_user_stats(db, user_id)
+    logger.debug(f"User stats retrieved: {user_stats}")
     
     # Convert user object to dict and merge with stats
     user_dict = {
@@ -64,6 +73,7 @@ def read_user(user_id: int, db: Session = Depends(get_db)):
         **user_stats  # Merge stats (isGoalSet, liveStreak, YesterdayMissedWorkout)
     }
     
+    logger.info(f"User data retrieved successfully for user ID: {user_id}")
     return user_dict
 
 

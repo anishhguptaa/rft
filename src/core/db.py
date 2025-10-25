@@ -2,10 +2,14 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from .config import settings
+from .logger import get_logger
+
+logger = get_logger(__name__)
 
 # Create the SQLAlchemy engine
 # The engine is the starting point for any SQLAlchemy application.
 # It's the 'home base' for the actual database and its DBAPI.
+logger.info(f"Creating database engine with URL: {settings.DATABASE_URL}")
 engine = create_engine(
     settings.DATABASE_URL,
     pool_pre_ping=True,  # Checks connections for liveness before handing them out.
@@ -17,14 +21,21 @@ engine = create_engine(
 # The class itself is not a session yet, but when we call SessionLocal(),
 # it will create a new session.
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+logger.info("Database session factory created successfully")
 
 def get_db():
     """
     FastAPI dependency that creates a new SQLAlchemy session for each request.
     The session is closed automatically after the request is finished.
     """
+    logger.debug("Creating new database session")
     db = SessionLocal()
     try:
         yield db
+    except Exception as e:
+        logger.error(f"Database session error: {str(e)}")
+        db.rollback()
+        raise
     finally:
+        logger.debug("Closing database session")
         db.close()

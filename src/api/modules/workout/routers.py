@@ -6,9 +6,12 @@ Handles endpoints for logging workout completion
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from core.db import get_db
+from core.logger import get_logger
 from api.modules.workout.services import log_workout_completion
 from pydantic import BaseModel
 from typing import Optional
+
+logger = get_logger(__name__)
 
 router = APIRouter()
 
@@ -76,6 +79,8 @@ def log_workout_completion_endpoint(
             "workout_notes": "Great workout! Felt strong today."
         }
     """
+    logger.info(f"Workout completion request for user {request.user_id}, schedule {request.schedule_id}")
+    
     try:
         workout_history = log_workout_completion(
             db=db,
@@ -87,6 +92,8 @@ def log_workout_completion_endpoint(
             workout_notes=request.workout_notes
         )
         
+        logger.info(f"Workout completed successfully for user {request.user_id}, history ID: {workout_history.UserWorkoutRoutineHistoryId}")
+        
         return LogWorkoutResponse(
             success=True,
             message="Workout completed and logged successfully",
@@ -96,16 +103,19 @@ def log_workout_completion_endpoint(
             schedule_status="completed"
         )
     except LookupError as e:
+        logger.warning(f"Workout completion failed - resource not found: {str(e)}")
         raise HTTPException(
             status_code=404,
             detail=str(e)
         )
     except ValueError as e:
+        logger.warning(f"Workout completion failed - validation error: {str(e)}")
         raise HTTPException(
             status_code=400,
             detail=str(e)
         )
     except Exception as e:
+        logger.error(f"Workout completion failed with unexpected error for user {request.user_id}: {str(e)}")
         raise HTTPException(
             status_code=500,
             detail=f"Error logging workout completion: {str(e)}"

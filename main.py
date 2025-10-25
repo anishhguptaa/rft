@@ -15,6 +15,7 @@ from sqlalchemy.orm import Session
 
 from core.config import settings
 from core.db import engine, get_db
+from core.logger import configure_application_logging, get_logger
 from models.DbModels.user import Base
 from api.modules.auth.routers import router as auth_router
 from api.modules.user.routers import router as user_router
@@ -24,9 +25,18 @@ from api.modules.workout.routers import router as workout_router
 from api.modules.meals.routers import router as meals_router
 from middleware.auth_middleware import AuthenticationMiddleware
 
+# Configure application-wide logging
+configure_application_logging(
+    level="INFO",
+    log_file="app.log" if not settings.DEBUG else None
+)
+
+logger = get_logger(__name__)
+
 # Create all tables stored in the Base metadata
 # This will create the 'users' table if it doesn't exist
 Base.metadata.create_all(bind=engine)
+logger.info("Database tables created/verified successfully")
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -34,6 +44,7 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc",
 )
+logger.info(f"FastAPI application initialized: {settings.PROJECT_NAME}")
 
 # Configure CORS (must be added before authentication middleware)
 app.add_middleware(
@@ -61,10 +72,10 @@ app.include_router(meals_router, prefix="/api/meals", tags=["Meals"])
 async def db_health(db: Session = Depends(get_db)):
     try:
         db.execute("SELECT 1")
-        print("Database connection is healthy.")
+        logger.info("Database health check successful")
         return {"status": "online", "message": "Database connection is healthy."}
     except Exception as e:
-        print(f"Database connection failed: {e}")
+        logger.error(f"Database health check failed: {str(e)}")
         return {"status": "offline", "message": f"Database connection failed: {e}"}
 
 
@@ -72,6 +83,7 @@ async def db_health(db: Session = Depends(get_db)):
 @app.get("/", tags=["Root"])
 async def root():
     """Root endpoint - health check"""
+    logger.info("Health check endpoint accessed")
     return {
         "status": "online",
         "message": "RFT App is running",
