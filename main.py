@@ -67,6 +67,7 @@ async def db_health(db: Session = Depends(get_db)):
 
 
 @app.get("/health", tags=["Root"])
+@app.get("/", tags=["Root"])
 async def root():
     """Root endpoint - health check"""
     return {
