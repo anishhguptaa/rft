@@ -37,12 +37,11 @@ class MealPlan(BaseModel):
 
     name: str = Field(
         ...,
-        description="Unique name of the meal. e.g., 'Breakfast', 'Lunch', 'Pre-Workout Meal', 'Post-Workout Meal', 'Snack'",
+        description="Unique name of the meal.",
     )
+    time_of_day: str = Field(..., description="When the meal is to be eaten. e.g., 'Breakfast', 'Lunch', 'Dinner', 'Snack', 'Pre-Workout Meal', 'Post-Workout Meal'")
     description: str = Field(..., description="What to actually eat in the meal")
-    ingredients: List[str] = Field(
-        ..., description="Key ingredients for the meal, maximum 3-5 ingredients"
-    )
+    ingredients: List[str] = Field(..., description="Key ingredients for the meal, maximum 3-5 ingredients")
 
 
 class Routine(BaseModel):
