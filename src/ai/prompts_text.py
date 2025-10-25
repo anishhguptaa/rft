@@ -275,19 +275,20 @@ Your approach prioritizes safety, individual limitations, and maintaining workou
 
 # ADJUSTMENT REQUEST
 
-The user is requesting adjustments to their current workout plan. You have access to:
+The user has skipped some days of their workout plan and is requesting adjustments to their current workout plan. You have access to:
 - Remaining routines for the week: {remaining_routines}
 - Current day: {current_day}
+- Remaining days: {remaining_days}
 
 # ADJUSTMENT INSTRUCTIONS
 
-Based on the remaining routines and current day, provide:
+Based on the remaining routines, current day and remaining days, provide:
 
 1. **Overview**: Brief summary of the adjusted workout plan (50 words or less)
 
-2. **Routines**: Updated list of routines that maintain the workout structure while addressing any necessary adjustments
+2. **Routines**: Updated list of routines that maintain the workout structure while addressing any necessary adjustments for the remaining {remaining_days} days starting from {current_day}
 
-3. **Weekly Schedule**: Updated daily schedule that references the adjusted routines
+3. **Weekly Schedule**: Updated daily schedule that references the adjusted routines for the remaining {remaining_days} days starting from {current_day}
 
 4. **AI Summary**: Summary of adjustments made and recommendations for future planning (60 words or less)
 

@@ -4,10 +4,20 @@ Pydantic models for AI endpoints
 """
 
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import List, Optional, Literal
 
 
 # Helper Schemas
+
+Gender = Literal["male", "female"]
+DietType = Literal["veg", "non_veg", "vegan"]
+WorkoutGoal = Literal[
+    "weight_loss", "weight_gain", "muscle_gain", "endurance", "strength"
+]
+MealPlanGoal = Literal["weight_loss", "weight_gain", "muscle_gain", "maintenance"]
+ExperienceLevel = Literal["beginner", "intermediate", "advanced"]
+
+
 class Exercise(BaseModel):
     """Individual exercise model with comprehensive details for workout execution"""
 
@@ -19,6 +29,19 @@ class Exercise(BaseModel):
     reps: List[int] = Field(..., description="List of number of reps for each set")
     weights_used: List[float] = Field(
         ..., description="List of weights used for each set in kilograms"
+    )
+
+
+class MealPlan(BaseModel):
+    """Model for a meal plan with comprehensive details for meal execution"""
+
+    name: str = Field(
+        ...,
+        description="Unique name of the meal. e.g., 'Breakfast', 'Lunch', 'Pre-Workout Meal', 'Post-Workout Meal', 'Snack'",
+    )
+    description: str = Field(..., description="What to actually eat in the meal")
+    ingredients: List[str] = Field(
+        ..., description="Key ingredients for the meal, maximum 3-5 ingredients"
     )
 
 
@@ -45,35 +68,26 @@ class DailySchedule(BaseModel):
 
 
 # Request Schemas
-class CreateCompleteWorkoutRequest(BaseModel):
+class CreateFirstWorkoutRequest(BaseModel):
     user_token: str = Field(..., description="User token")
-    first_workout: bool = Field(
-        ..., description="Whether it is the first workout plan or not"
-    )
     height: int = Field(..., description="Height in centimeters")
     weight: float = Field(..., description="Weight in kilograms")
-    target_weight: float = Field(
-        ..., description="Target weight in kilograms"
-    )
+    target_weight: float = Field(..., description="Target weight in kilograms")
     age: int = Field(..., description="Age in years")
-    gender: str = Field(..., description="Gender (male/female/other)")
-    workout_goal: str = Field(
+    gender: Gender = Field(..., description="Gender")
+    workout_goal: WorkoutGoal = Field(
         ...,
-        description="Primary workout goal (e.g., weight_loss, weight_gain, muscle_gain, endurance, strength)",
+        description="Primary workout goal",
     )
-    goal_timeline: int = Field(
-        ..., description="Target goal timeline in weeks"
-    )
-    workout_days: int = Field(
-        ..., description="Number of days to workout in the week"
-    )
+    goal_timeline: int = Field(..., description="Target goal timeline in weeks")
+    workout_days: int = Field(..., description="Number of days to workout in the week")
     current_day: str = Field(..., description="Current day of the week")
     equipment: str = Field(
         ...,
         description="Available equipment (e.g., gym, home_bodyweight, home_dumbbells)",
     )
-    experience_level: str = Field(
-        ..., description="Fitness experience level (beginner/intermediate/advanced)"
+    experience_level: ExperienceLevel = Field(
+        ..., description="Fitness experience level"
     )
     user_limitations: Optional[List[str]] = Field(
         None,
@@ -84,10 +98,63 @@ class CreateCompleteWorkoutRequest(BaseModel):
     )
 
 
-class AdjustWorkoutPlanRequest(BaseModel):
+class ContinueWorkoutRequest(BaseModel):
     user_token: str = Field(..., description="User token")
-    remaining_routines: List[Routine] = Field(..., description="List of remaining routines for the week")
+    height: int = Field(..., description="Height in centimeters")
+    weight: float = Field(..., description="Weight in kilograms")
+    target_weight: float = Field(..., description="Target weight in kilograms")
+    age: int = Field(..., description="Age in years")
+    gender: Gender = Field(..., description="Gender")
+    workout_goal: WorkoutGoal = Field(
+        ...,
+        description="Primary workout goal",
+    )
+    goal_timeline: int = Field(..., description="Target goal timeline in weeks")
+    workout_days: int = Field(..., description="Number of days to workout in the week")
     current_day: str = Field(..., description="Current day of the week")
+    equipment: str = Field(
+        ...,
+        description="Available equipment (e.g., gym, home_bodyweight, home_dumbbells)",
+    )
+    experience_level: ExperienceLevel = Field(
+        ..., description="Fitness experience level"
+    )
+    user_limitations: Optional[List[str]] = Field(
+        None,
+        description="List of user limitations (e.g., injuries, medical conditions, mobility restrictions)",
+    )
+    weight_change_last_week: float = Field(
+        ..., description="Weight change in kilograms last week"
+    )
+    user_remarks: Optional[str] = Field(
+        None, description="Additional user remarks about the workout plan"
+    )
+
+
+# class CreateMealPlanRequest(BaseModel):
+#     user_token: str = Field(..., description="User token")
+#     height: int = Field(..., description="Height in centimeters")
+#     weight: float = Field(..., description="Weight in kilograms")
+#     target_weight: float = Field(
+#         ..., description="Target weight in kilograms"
+#     )
+#     age: int = Field(..., description="Age in years")
+#     gender: Gender = Field(..., description="Gender")
+#     meal_plan_goal: MealPlanGoal = Field(
+#         ...,
+#         description="Primary meal plan goal",
+#     )
+#     current_day: str = Field(..., description="Current day of the week")
+#     user_remarks: Optional[str] = Field(
+#         None, description="Additional user remarks about the meal plan"
+#     )
+#     allergies: List[str] = Field(default_factory=list, description="e.g., peanut, shellfish")
+#     intolerances: List[str] = Field(default_factory=list, description="e.g., lactose, gluten")
+#     health_conditions: List[str] = Field(default_factory=list, description="e.g., diabetes, PCOS, thyroid, kidney")
+#     medications: List[str] = Field(default_factory=list, description="Medications that affect appetite/foods")
+#     diet_type: DietType = Field(..., description="Diet type")
+#     disliked_foods: List[str] = Field(default_factory=list, description="Hard no's")
+#     location_country: Optional[str] = Field(None, description="For ingredient availability and cuisine suggestions")
 
 
 # class EditDailyWorkoutPlanRequest(BaseModel):
@@ -133,3 +200,13 @@ class WorkoutPlanResponse(BaseModel):
         ...,
         description="60 words or less, summary of the week's workout plan for the AI to take a reference while generating the workout plan of next week",
     )
+
+
+# class MealPlanResponse(BaseModel):
+#     """Response model for meal plan generation with comprehensive nutrition guidance"""
+
+#     overview: str = Field(
+#         ...,
+#         description="50 words or less, brief overview of this week's meal plan which you created, expected outcomes, user limitations considered and key nutrition principles",
+#     )
+#     meals: List[MealPlan] = Field(..., description="List of meals for the week")

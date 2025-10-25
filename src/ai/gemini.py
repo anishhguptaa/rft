@@ -3,17 +3,17 @@ Gemini AI Service
 Handles workout plan generation using Google's Gemini AI
 """
 
-from ai.prompts import get_first_workout_prompt, get_feasibility_prompt, get_adjust_workout_plan_prompt
+from ai.prompts import get_first_workout_prompt, get_feasibility_prompt
 from core.config import settings
 from core.logger import get_logger
-from ai.prompts import get_workout_prompt, get_feasibility_prompt
+from ai.prompts import get_feasibility_prompt
 from core.config import settings
 from core.logger import get_logger
 from typing import Dict, Any
 from google import genai
 from google.genai import types
 from pydantic import BaseModel
-from schemas.ai_schemas import WorkoutPlanResponse, CreateCompleteWorkoutRequest, RequestFeasibilityResponse, AdjustWorkoutPlanRequest
+from schemas.ai_schemas import WorkoutPlanResponse, CreateFirstWorkoutRequest, RequestFeasibilityResponse
 
 logger = get_logger(__name__)
 
@@ -78,6 +78,8 @@ class GeminiService:
                 model=model, contents=prompt, config=config
             )
 
+            logger.info(f"Gemini API Response: {response}.")
+
             if output_schema:
                 result = response.parsed.model_dump()
             else:
@@ -91,7 +93,7 @@ class GeminiService:
 
     async def generate_first_workout_plan(
         self,
-        request_data: CreateCompleteWorkoutRequest,
+        request_data: CreateFirstWorkoutRequest,
         model: str = "gemini-2.5-flash",
         temperature: float = 0.5,
     ) -> Dict[str, Any]:
@@ -99,7 +101,7 @@ class GeminiService:
         Generate a personalized workout plan based on user parameters
 
         Args:
-            request_data: Dictionary containing user parameters from CreateCompleteWorkoutRequest
+            request_data: Dictionary containing user parameters from CreateFirstWorkoutRequest
             model: Gemini model to use for generation
             temperature: Controls randomness (0.0-1.0, lower = more consistent)
 
@@ -135,59 +137,51 @@ class GeminiService:
             logger.error(f"Failed to generate workout plan: {str(e)}", exc_info=True)
             raise
 
-    async def generate_workout_plan(
-        self,
-        request_data: CreateCompleteWorkoutRequest,
-        model: str = "gemini-2.5-flash",
-        temperature: float = 0.5,
-    ) -> Dict[str, Any]:
-        """
-        Generate a personalized workout plan based on user parameters (for non-first workouts)
+    # async def continue_workout_plan(
+    #     self,
+    #     request_data: ContinueWorkoutRequest,
+    #     model: str = "gemini-2.5-flash",
+    #     temperature: float = 0.5,
+    # ) -> Dict[str, Any]:
+    #     """
+    #     Continue a personalized workout plan based on user parameters (for non-first workouts)
+    #     """
+    #     try:
+    #         logger.info(f"Continuing workout plan for user")
+    #         workout_plan_prompt = get_first_workout_prompt(request_data)
+    #         workout_plan = self.ask_gemini(
+    #             prompt=workout_plan_prompt,
+    #             model=model,
+    #             output_schema=WorkoutPlanResponse,
+    #             thinking_budget=True,  # Enable reasoning for complex planning
+    #             temperature=temperature,
+    #         )
+    #         return workout_plan
 
-        Args:
-            request_data: Dictionary containing user parameters from CreateCompleteWorkoutRequest
-            model: Gemini model to use for generation
-            temperature: Controls randomness (0.0-1.0, lower = more consistent)
+    #     except Exception as e:
+    #         logger.error(f"Failed to generate workout plan: {str(e)}", exc_info=True)
+    #         raise
 
-        Returns:
-            Dictionary containing the generated workout plan
-        """
-        try:
-            logger.info(f"Generating workout plan for user (non-first workout)")
-            workout_plan_prompt = get_first_workout_prompt(request_data)
-            workout_plan = self.ask_gemini(
-                prompt=workout_plan_prompt,
-                model=model,
-                output_schema=WorkoutPlanResponse,
-                thinking_budget=True,  # Enable reasoning for complex planning
-                temperature=temperature,
-            )
-            return workout_plan
-
-        except Exception as e:
-            logger.error(f"Failed to generate workout plan: {str(e)}", exc_info=True)
-            raise
-
-    async def adjust_workout_plan(
-        self,
-        request_data: AdjustWorkoutPlanRequest,
-        model: str = "gemini-2.5-flash",
-        temperature: float = 0.5,
-    ) -> Dict[str, Any]:
-        """
-        Adjust a workout plan based on user parameters
-        """
-        try:
-            logger.info(f"Adjusting workout plan for user: {request_data.user_token}")
-            adjust_workout_plan_prompt = get_adjust_workout_plan_prompt(request_data)
-            workout_plan = self.ask_gemini(
-                prompt=adjust_workout_plan_prompt,
-                model=model,
-                output_schema=WorkoutPlanResponse,
-                thinking_budget=True,  # Enable reasoning for complex planning
-                temperature=temperature,
-            )
-            return workout_plan
-        except Exception as e:
-            logger.error(f"Failed to adjust workout plan: {str(e)}", exc_info=True)
-            raise
+    # async def adjust_workout_plan(
+    #     self,
+    #     request_data: AdjustWorkoutPlanRequest,
+    #     model: str = "gemini-2.5-flash",
+    #     temperature: float = 0.5,
+    # ) -> Dict[str, Any]:
+    #     """
+    #     Adjust a workout plan based on user parameters
+    #     """
+    #     try:
+    #         logger.info(f"Adjusting workout plan for user: {request_data.user_token}")
+    #         adjust_workout_plan_prompt = get_adjust_workout_plan_prompt(request_data)
+    #         workout_plan = self.ask_gemini(
+    #             prompt=adjust_workout_plan_prompt,
+    #             model=model,
+    #             output_schema=WorkoutPlanResponse,
+    #             thinking_budget=True,  # Enable reasoning for complex planning
+    #             temperature=temperature,
+    #         )
+    #         return workout_plan
+    #     except Exception as e:
+    #         logger.error(f"Failed to adjust workout plan: {str(e)}", exc_info=True)
+    #         raise

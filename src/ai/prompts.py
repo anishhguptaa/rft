@@ -62,14 +62,21 @@ def get_feasibility_prompt(data: Dict[str, Any]) -> str:
     return prompt
 
 
-def get_adjust_workout_plan_prompt(data: Dict[str, Any]) -> str:
-    """Create a prompt for workout plan adjustment using the same input as workout generation"""
+# def get_adjust_workout_plan_prompt(data: Dict[str, Any]) -> str:
+#     """Create a prompt for workout plan adjustment using the same input as workout generation"""
+
+#     # Calculate remaining days in the week
+#     current_day = data['current_day'].lower()
+#     days_of_week = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+#     current_day_index = days_of_week.index(current_day) if current_day in days_of_week else 0
+#     remaining_days = 7 - current_day_index
     
-    template_vars = {
-        'remaining_routines': data['remaining_routines'],
-        'current_day': data['current_day']
-    }
+#     template_vars = {
+#         'remaining_routines': data['remaining_routines'],
+#         'current_day': data['current_day'],
+#         'remaining_days': remaining_days
+#     }
     
-    prompt = ADJUST_WORKOUT_PLAN_PROMPT_TEMPLATE.format(**template_vars)
+#     prompt = ADJUST_WORKOUT_PLAN_PROMPT_TEMPLATE.format(**template_vars)
     
-    return prompt
+#     return prompt
