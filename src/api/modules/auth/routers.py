@@ -4,7 +4,6 @@ Handles JWT-based authentication endpoints
 """
 
 from fastapi import APIRouter, Depends, HTTPException, status, Response, Request
-from fastapi.datastructures import SameSite
 from sqlalchemy.orm import Session
 
 from core.db import get_db
@@ -79,7 +78,7 @@ def signup(request: SignupRequest, response: Response, db: Session = Depends(get
             value=tokens["access_token"],
             httponly=True,
             secure=not settings.DEBUG,  # Only send over HTTPS in production
-            samesite=SameSite.LAX,  # CSRF protection
+            samesite="lax",  # CSRF protection
             max_age=900,  # 15 minutes in seconds
         )
         
@@ -89,7 +88,7 @@ def signup(request: SignupRequest, response: Response, db: Session = Depends(get
             value=tokens["refresh_token"],
             httponly=True,
             secure=not settings.DEBUG,  # Only send over HTTPS in production
-            samesite=SameSite.LAX,
+            samesite="lax",
             max_age=604800,  # 7 days in seconds
         )
         
@@ -164,7 +163,7 @@ def login(request: LoginRequest, response: Response, db: Session = Depends(get_d
         value=tokens["access_token"],
         httponly=True,
         secure=not settings.DEBUG,  # Only send over HTTPS in production
-        samesite=SameSite.LAX,
+        samesite="lax",
         max_age=900,  # 15 minutes in seconds
     )
     
@@ -174,7 +173,7 @@ def login(request: LoginRequest, response: Response, db: Session = Depends(get_d
         value=tokens["refresh_token"],
         httponly=True,
         secure=not settings.DEBUG,  # Only send over HTTPS in production
-        samesite=SameSite.LAX,
+        samesite="lax",
         max_age=604800,  # 7 days in seconds
     )
     
@@ -268,7 +267,7 @@ def refresh_token(request: Request, response: Response, db: Session = Depends(ge
         value=tokens["access_token"],
         httponly=True,
         secure=not settings.DEBUG,  # Only send over HTTPS in production
-        samesite=SameSite.LAX,
+        samesite="lax",
         max_age=900,  # 15 minutes in seconds
     )
     
@@ -278,7 +277,7 @@ def refresh_token(request: Request, response: Response, db: Session = Depends(ge
         value=tokens["refresh_token"],
         httponly=True,
         secure=not settings.DEBUG,  # Only send over HTTPS in production
-        samesite=SameSite.LAX,
+        samesite="lax",
         max_age=604800,  # 7 days in seconds
     )
     
@@ -322,8 +321,8 @@ def logout(request: Request, response: Response, db: Session = Depends(get_db)):
         logger.info("No refresh token found in cookies")
     
     # Clear both cookies
-    response.delete_cookie(key="access_token", samesite=SameSite.LAX)
-    response.delete_cookie(key="refresh_token", samesite=SameSite.LAX)
+    response.delete_cookie(key="access_token", samesite="lax")
+    response.delete_cookie(key="refresh_token", samesite="lax")
     
     logger.info("Logout completed successfully")
     return LogoutResponse(
