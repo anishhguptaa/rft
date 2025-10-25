@@ -25,12 +25,14 @@ from models.DbModels.user_progress import UserProgress # Import the new UserProg
 from models.DbModels.user_health_profile import UserHealthProfile # Import the new UserHealthProfile model
 from models.DbModels.routines import Routines # Import the new Routines model
 from models.DbModels.weekly_schedule import WeeklySchedule # Import the new WeeklySchedule model
+from models.DbModels.user_session import UserSession # Import the new UserSession model
 from ai.routes import router as ai_router
 from api.modules.auth.routers import router as auth_router
 from api.modules.user.routers import router as user_router
 from api.modules.ai_backend_integration.routers import router as ai_backend_router
 from api.modules.daily_schedule.routers import router as daily_schedule_router
 from api.modules.workout.routers import router as workout_router
+from middleware.auth_middleware import AuthenticationMiddleware
 
 # Create all tables stored in the Base metadata
 # This will create the 'users' table if it doesn't exist
@@ -43,7 +45,7 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
-# Configure CORS
+# Configure CORS (must be added before authentication middleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.ALLOWED_ORIGINS,
@@ -51,6 +53,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Add Authentication Middleware (protects all endpoints except public routes)
+app.add_middleware(AuthenticationMiddleware)
 
 # Include routers
 app.include_router(ai_router, prefix="/api/ai", tags=["AI"])

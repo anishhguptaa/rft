@@ -25,17 +25,38 @@ class UserResponse(BaseModel):
         from_attributes = True # Replaces orm_mode in Pydantic v2
 
 
-# Schema for login request
-class LoginRequest(BaseModel):
-    emailId: EmailStr
+# Auth Request/Response Schemas
+
+class SignupRequest(BaseModel):
+    email: EmailStr
     password: str
 
 
-# Schema for login response
-class LoginResponse(BaseModel):
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str
+
+
+class AuthResponse(BaseModel):
     success: bool
     message: str
-    userId: Optional[int] = None
+    access_token: Optional[str] = None
+    refresh_token: Optional[str] = None
+    user_id: Optional[int] = None
+    token_type: str = "bearer"
+
+
+class RefreshTokenRequest(BaseModel):
+    refresh_token: str
+
+
+class LogoutRequest(BaseModel):
+    refresh_token: str
+
+
+class LogoutResponse(BaseModel):
+    success: bool
+    message: str
 
 
 # Request schema to update user's basic info
