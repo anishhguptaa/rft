@@ -179,6 +179,81 @@ def save_ai_workout_plan(
         db.close()
 
 
+def save_ai_meal_plan(
+    user_id: int,
+    ai_meal_response_json: str
+) -> Dict[str, Any]:
+    """
+    Save AI-generated meal plan to the workout plan table.
+    
+    Finds the active workout plan for the user where today's date falls
+    within the plan's date range (StartDate to EndDate), and updates
+    the MealJson column with the provided meal plan JSON.
+    
+    Args:
+        user_id: User ID for whom the meal plan is being saved
+        ai_meal_response_json: JSON string containing the AI-generated meal plan
+        
+    Returns:
+        Dict with success status and message:
+        - success: True if meal plan was saved, False otherwise
+        - message: Description of the result
+        - plan_id: The workout plan ID (if successful)
+    """
+    
+    # Create database session
+    db = SessionLocal()
+    
+    try:
+        # Get today's date
+        today = datetime.now().date()
+        
+        # Find the workout plan where today's date is within the date range
+        workout_plan = (
+            db.query(WorkoutPlan)
+            .filter(
+                WorkoutPlan.UserId == user_id,
+                WorkoutPlan.IsActive == True,
+                WorkoutPlan.StartDate <= today,
+                WorkoutPlan.EndDate >= today
+            )
+            .first()
+        )
+        
+        # If no workout plan found for the current date range
+        if not workout_plan:
+            return {
+                "success": False,
+                "message": f"No active workout plan found for user {user_id} covering today's date ({today})",
+                "plan_id": None
+            }
+        
+        # Update the MealJson column with the AI-generated meal plan
+        workout_plan.MealJson = ai_meal_response_json
+        
+        # Commit the changes
+        db.commit()
+        db.refresh(workout_plan)
+        
+        return {
+            "success": True,
+            "message": f"Meal plan successfully saved to workout plan {workout_plan.PlanId}",
+            "plan_id": workout_plan.PlanId
+        }
+    
+    except Exception as e:
+        db.rollback()
+        return {
+            "success": False,
+            "message": f"Failed to save meal plan: {str(e)}",
+            "plan_id": None
+        }
+    
+    finally:
+        # Always close the database session
+        db.close()
+
+
 def get_workout_plan_with_details(
     db: Session,
     plan_id: int
