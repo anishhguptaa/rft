@@ -3,6 +3,7 @@ AI Backend Integration Services
 Handles saving AI-generated workout plans to the database
 """
 
+from sqlalchemy import BigInteger
 from sqlalchemy.orm import Session
 from models.DbModels.workout_plan import WorkoutPlan
 from models.DbModels.routines import Routines
@@ -17,6 +18,7 @@ import json
 
 
 def save_ai_workout_plan(
+    user_id: int,
     ai_response: Any  # AI response object with user_id and other attributes
 ) -> WorkoutPlan:
     """
@@ -47,11 +49,6 @@ def save_ai_workout_plan(
     db = SessionLocal()
     
     try:
-        # Extract user_id from AI response
-        user_id = getattr(ai_response, "user_id", None)
-        if not user_id:
-            raise ValueError("user_id is required in ai_response")
-        
         # Calculate current week's start (Monday) and end (Sunday) dates
         today = datetime.now().date()
         # Get the weekday (0=Monday, 6=Sunday)
