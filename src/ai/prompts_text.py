@@ -188,7 +188,7 @@ Medications: {medications}, Disliked foods: {disliked_foods}, Remarks: {user_rem
 **Regional**: Incorporate {location_country} traditional foods, local ingredients, cultural flavors
 
 # SCHEMA COMPLIANCE
-- Meal fields: name (unique descriptive), description (what to eat), ingredients (3-5 key ingredients)
+- Meal fields: name (unique descriptive), time_of_day (when to eat), description (what to eat), ingredients (3-5 key ingredients)
 - Nesting: MealPlanResponse → meals → MealPlan
 
 Generate personalized meal plan with proper nutritional balance, safety considerations, and cultural adaptations."""
