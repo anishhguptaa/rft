@@ -126,8 +126,8 @@ class ContinueWorkoutRequest(BaseModel):
     last_week_weight_change: Optional[float] = Field(
         None, description="Weight change in kilograms last week"
     )
-    user_remarks: Optional[str] = Field(
-        None, description="Additional user remarks about the workout plan"
+    previous_week_workout_plan_summary: Optional[str] = Field(
+        None, description="Summary of the previous week's workout plan"
     )
 
 
@@ -138,6 +138,7 @@ class CreateMealPlanRequest(BaseModel):
     target_weight: float = Field(..., description="Target weight in kilograms")
     age: int = Field(..., description="Age in years")
     gender: Gender = Field(..., description="Gender")
+    current_day: str = Field(..., description="Current day of the week")
     meal_plan_goal: MealPlanGoal = Field(
         ...,
         description="Primary meal plan goal",
