@@ -24,6 +24,7 @@ class Goal(Base):
     GoalType = Column(Enum(GoalTypeEnum), nullable=False)
     NoOfWorkoutDaysInWeek = Column(Integer, nullable=True)
     TargetWeight = Column(DECIMAL(5, 2), nullable=True)
+    initial_weight = Column(DECIMAL(5, 2), nullable=True)
     TargetDurationInWeeks = Column(Integer, nullable=True)
     WorkoutEquipment = Column(Enum(WorkoutEquipmentEnum), nullable=True)
     Remarks = Column(String(1000), nullable=True)

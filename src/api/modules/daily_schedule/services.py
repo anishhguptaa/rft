@@ -213,35 +213,18 @@ def swap_routine_mappings(
     routine_id_1 = schedule_1.RoutineId
     routine_id_2 = schedule_2.RoutineId
     
-    # Soft delete the existing entries by removing them
-    # (We'll create new entries instead of updating to maintain history)
-    db.delete(schedule_1)
-    db.delete(schedule_2)
-    db.flush()
+    # Update the existing entries with swapped routine IDs
+    # (Don't delete to avoid foreign key constraint violations)
+    schedule_1.RoutineId = routine_id_2  # Swapped
+    schedule_1.Status = ScheduleStatus.SWAPPED
     
-    # Create new schedule entries with swapped routine IDs
-    new_schedule_1 = WeeklySchedule(
-        PlanId=schedule_1.PlanId,
-        DayOfWeek=schedule_1.DayOfWeek,
-        RoutineId=routine_id_2,  # Swapped
-        Status=ScheduleStatus.SWAPPED,
-        IsRestDay=schedule_1.IsRestDay,
-        UserFeedback=schedule_1.UserFeedback
-    )
+    schedule_2.RoutineId = routine_id_1  # Swapped
+    schedule_2.Status = ScheduleStatus.SWAPPED
     
-    new_schedule_2 = WeeklySchedule(
-        PlanId=schedule_2.PlanId,
-        DayOfWeek=schedule_2.DayOfWeek,
-        RoutineId=routine_id_1,  # Swapped
-        Status=ScheduleStatus.SWAPPED,
-        IsRestDay=schedule_2.IsRestDay,
-        UserFeedback=schedule_2.UserFeedback
-    )
-    
-    db.add(new_schedule_1)
-    db.add(new_schedule_2)
+    db.add(schedule_1)
+    db.add(schedule_2)
     db.commit()
-    db.refresh(new_schedule_1)
-    db.refresh(new_schedule_2)
+    db.refresh(schedule_1)
+    db.refresh(schedule_2)
     
-    return new_schedule_1, new_schedule_2
+    return schedule_1, schedule_2

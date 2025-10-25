@@ -73,6 +73,11 @@ def log_workout_completion(
         WorkoutNotes=workout_notes
     )
     
+    # Update user weight
+    user.CurrentWeight = today_weight
+    db.add(user)
+    db.commit()
+
     db.add(workout_history)
     
     # Update schedule status to completed
