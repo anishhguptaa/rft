@@ -4,7 +4,11 @@ Business logic for AI operations
 """
 
 from ai.gemini import GeminiService
-from schemas.ai_schemas import CreateFirstWorkoutRequest
+from schemas.ai_schemas import (
+    CreateFirstWorkoutRequest,
+    CreateMealPlanRequest,
+    ContinueWorkoutRequest,
+)
 
 
 class AIService:
@@ -34,30 +38,20 @@ class AIService:
         except Exception as e:
             raise Exception(f"Failed to generate first workout plan: {str(e)}")
 
-    async def continue_workout_plan(self, request: CreateFirstWorkoutRequest) -> dict:
+    async def continue_workout_plan(self, request: ContinueWorkoutRequest) -> dict:
         """
         Continue a personalized workout plan using AI (for non-first workouts)
         """
         pass
 
-    # async def adjust_workout_plan(
-    #     self, request: AdjustWorkoutPlanRequest
-    # ) -> dict:
-    #     """
-    #     Adjust a workout plan using AI
+    async def generate_meal_plan(self, request: CreateMealPlanRequest) -> dict:
+        """
+        Generate a personalized meal plan using AI
 
-    #     Args:
-    #         request: AdjustWorkoutPlanRequest containing adjustment parameters
+        Args:
+            request: CreateMealPlanRequest containing meal plan parameters
 
-    #     Returns:
-    #         dict containing the adjusted workout plan
-    #     """
-    #     try:
-    #         request_data = request.model_dump()
-    #         adjusted_workout_plan = await self.gemini_service.adjust_workout_plan(
-    #             request_data
-    #         )
-    #         return adjusted_workout_plan
-
-    #     except Exception as e:
-    #         raise Exception(f"Failed to adjust workout plan: {str(e)}")
+        Returns:
+            dict containing the generated meal plan
+        """
+        pass

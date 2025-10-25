@@ -123,53 +123,45 @@ class ContinueWorkoutRequest(BaseModel):
         None,
         description="List of user limitations (e.g., injuries, medical conditions, mobility restrictions)",
     )
-    weight_change_last_week: float = Field(
-        ..., description="Weight change in kilograms last week"
+    last_week_weight_change: Optional[float] = Field(
+        None, description="Weight change in kilograms last week"
     )
     user_remarks: Optional[str] = Field(
         None, description="Additional user remarks about the workout plan"
     )
 
 
-# class CreateMealPlanRequest(BaseModel):
-#     user_token: str = Field(..., description="User token")
-#     height: int = Field(..., description="Height in centimeters")
-#     weight: float = Field(..., description="Weight in kilograms")
-#     target_weight: float = Field(
-#         ..., description="Target weight in kilograms"
-#     )
-#     age: int = Field(..., description="Age in years")
-#     gender: Gender = Field(..., description="Gender")
-#     meal_plan_goal: MealPlanGoal = Field(
-#         ...,
-#         description="Primary meal plan goal",
-#     )
-#     current_day: str = Field(..., description="Current day of the week")
-#     user_remarks: Optional[str] = Field(
-#         None, description="Additional user remarks about the meal plan"
-#     )
-#     allergies: List[str] = Field(default_factory=list, description="e.g., peanut, shellfish")
-#     intolerances: List[str] = Field(default_factory=list, description="e.g., lactose, gluten")
-#     health_conditions: List[str] = Field(default_factory=list, description="e.g., diabetes, PCOS, thyroid, kidney")
-#     medications: List[str] = Field(default_factory=list, description="Medications that affect appetite/foods")
-#     diet_type: DietType = Field(..., description="Diet type")
-#     disliked_foods: List[str] = Field(default_factory=list, description="Hard no's")
-#     location_country: Optional[str] = Field(None, description="For ingredient availability and cuisine suggestions")
-
-
-# class EditDailyWorkoutPlanRequest(BaseModel):
-#     edit_plan: str = Field(
-#         ...,
-#         description="What kind of changes the user wants to make to the daily workout plan",
-#     )
-#     daily_workout_plan: WorkoutDay = Field(
-#         ..., description="Daily workout plan to edit"
-#     )
-
-
-# class EditWeeklyWorkoutPlanRequest(BaseModel):
-#     user_id: int = Field(..., description="User ID")
-#     weekly_workout_plan: WeeklySchedule = Field(..., description="Weekly workout plan to edit")
+class CreateMealPlanRequest(BaseModel):
+    user_token: str = Field(..., description="User token")
+    height: int = Field(..., description="Height in centimeters")
+    weight: float = Field(..., description="Weight in kilograms")
+    target_weight: float = Field(..., description="Target weight in kilograms")
+    age: int = Field(..., description="Age in years")
+    gender: Gender = Field(..., description="Gender")
+    meal_plan_goal: MealPlanGoal = Field(
+        ...,
+        description="Primary meal plan goal",
+    )
+    user_remarks: Optional[str] = Field(
+        None, description="Additional user remarks about the meal plan"
+    )
+    allergies: List[str] = Field(
+        default_factory=list, description="e.g., peanut, shellfish"
+    )
+    intolerances: List[str] = Field(
+        default_factory=list, description="e.g., lactose, gluten"
+    )
+    health_conditions: List[str] = Field(
+        default_factory=list, description="e.g., diabetes, PCOS, thyroid, kidney"
+    )
+    medications: List[str] = Field(
+        default_factory=list, description="Medications that affect appetite/foods"
+    )
+    diet_type: DietType = Field(..., description="Diet type")
+    disliked_foods: List[str] = Field(default_factory=list, description="Hard no's")
+    location_country: Optional[str] = Field(
+        None, description="For ingredient availability and cuisine suggestions"
+    )
 
 
 # Response Schemas
@@ -202,11 +194,11 @@ class WorkoutPlanResponse(BaseModel):
     )
 
 
-# class MealPlanResponse(BaseModel):
-#     """Response model for meal plan generation with comprehensive nutrition guidance"""
+class MealPlanResponse(BaseModel):
+    """Response model for meal plan generation with comprehensive nutrition guidance"""
 
-#     overview: str = Field(
-#         ...,
-#         description="50 words or less, brief overview of this week's meal plan which you created, expected outcomes, user limitations considered and key nutrition principles",
-#     )
-#     meals: List[MealPlan] = Field(..., description="List of meals for the week")
+    overview: str = Field(
+        ...,
+        description="50 words or less, brief overview of this week's meal plan which you created, expected outcomes, user limitations considered and key nutrition principles",
+    )
+    meals: List[MealPlan] = Field(..., description="List of meals for the week")

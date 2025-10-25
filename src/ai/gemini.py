@@ -13,7 +13,14 @@ from typing import Dict, Any
 from google import genai
 from google.genai import types
 from pydantic import BaseModel
-from schemas.ai_schemas import WorkoutPlanResponse, CreateFirstWorkoutRequest, RequestFeasibilityResponse
+from schemas.ai_schemas import (
+    WorkoutPlanResponse,
+    CreateFirstWorkoutRequest,
+    RequestFeasibilityResponse,
+    ContinueWorkoutRequest,
+    CreateMealPlanRequest,
+    MealPlanResponse,
+)
 
 logger = get_logger(__name__)
 
@@ -40,7 +47,7 @@ class GeminiService:
     ) -> Dict[str, Any]:
         """
         Ask Gemini a question with structured output and thinking
-        
+
         Args:
             prompt: The input prompt
             model: Gemini model to use
@@ -53,7 +60,9 @@ class GeminiService:
                 config = types.GenerateContentConfig(
                     response_mime_type="application/json",
                     response_schema=output_schema,
-                    thinking_config=types.ThinkingConfig(thinking_budget=-1),  # Enable reasoning
+                    thinking_config=types.ThinkingConfig(
+                        thinking_budget=-1
+                    ),  # Enable reasoning
                     temperature=temperature,
                 )
             elif output_schema and not thinking_budget:
@@ -122,7 +131,9 @@ class GeminiService:
                 logger.info(f"Workout Plan Request is not feasible")
                 return feasibility
             else:
-                logger.info(f"Workout Plan Request is feasible ... generating workout plan!!")
+                logger.info(
+                    f"Workout Plan Request is feasible ... generating workout plan!!"
+                )
                 workout_plan_prompt = get_first_workout_prompt(request_data)
                 workout_plan = self.ask_gemini(
                     prompt=workout_plan_prompt,
@@ -137,51 +148,32 @@ class GeminiService:
             logger.error(f"Failed to generate workout plan: {str(e)}", exc_info=True)
             raise
 
-    # async def continue_workout_plan(
-    #     self,
-    #     request_data: ContinueWorkoutRequest,
-    #     model: str = "gemini-2.5-flash",
-    #     temperature: float = 0.5,
-    # ) -> Dict[str, Any]:
-    #     """
-    #     Continue a personalized workout plan based on user parameters (for non-first workouts)
-    #     """
-    #     try:
-    #         logger.info(f"Continuing workout plan for user")
-    #         workout_plan_prompt = get_first_workout_prompt(request_data)
-    #         workout_plan = self.ask_gemini(
-    #             prompt=workout_plan_prompt,
-    #             model=model,
-    #             output_schema=WorkoutPlanResponse,
-    #             thinking_budget=True,  # Enable reasoning for complex planning
-    #             temperature=temperature,
-    #         )
-    #         return workout_plan
+    async def continue_workout_plan(
+        self,
+        request_data: ContinueWorkoutRequest,
+        model: str = "gemini-2.5-flash",
+        temperature: float = 0.5,
+    ) -> Dict[str, Any]:
+        """
+        Continue a personalized workout plan based on user parameters (for non-first workouts)
+        """
+        try:
+            pass
+        except Exception as e:
+            logger.error(f"Failed to continue workout plan: {str(e)}", exc_info=True)
+            raise
 
-    #     except Exception as e:
-    #         logger.error(f"Failed to generate workout plan: {str(e)}", exc_info=True)
-    #         raise
-
-    # async def adjust_workout_plan(
-    #     self,
-    #     request_data: AdjustWorkoutPlanRequest,
-    #     model: str = "gemini-2.5-flash",
-    #     temperature: float = 0.5,
-    # ) -> Dict[str, Any]:
-    #     """
-    #     Adjust a workout plan based on user parameters
-    #     """
-    #     try:
-    #         logger.info(f"Adjusting workout plan for user: {request_data.user_token}")
-    #         adjust_workout_plan_prompt = get_adjust_workout_plan_prompt(request_data)
-    #         workout_plan = self.ask_gemini(
-    #             prompt=adjust_workout_plan_prompt,
-    #             model=model,
-    #             output_schema=WorkoutPlanResponse,
-    #             thinking_budget=True,  # Enable reasoning for complex planning
-    #             temperature=temperature,
-    #         )
-    #         return workout_plan
-    #     except Exception as e:
-    #         logger.error(f"Failed to adjust workout plan: {str(e)}", exc_info=True)
-    #         raise
+    async def create_meal_plan(
+        self,
+        request_data: CreateMealPlanRequest,
+        model: str = "gemini-2.5-flash",
+        temperature: float = 0.5,
+    ) -> Dict[str, Any]:
+        """
+        Generate a personalized meal plan based on user parameters
+        """
+        try:
+            pass
+        except Exception as e:
+            logger.error(f"Failed to create meal plan: {str(e)}", exc_info=True)
+            raise
